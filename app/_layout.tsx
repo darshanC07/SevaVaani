@@ -4,6 +4,8 @@ export default function Layout() {
   return (
     <Stack>
       <Stack.Screen name="OnBoarding1" options={{ headerShown: false }} />
+      <Stack.Screen name="OnBoarding2" options={{ headerShown: false }} />
+      <Stack.Screen name="OnBoarding3" options={{ headerShown: false }} />
       {/* <Stack.Screen name="Home" options={{ headerShown: true, title: "Home" }} /> */}
     </Stack>
   );

@@ -1,29 +1,41 @@
-import { View, Text, Image, StyleSheet, TouchableHighlight, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-const OnBoarding1 = () => {
+const OnBoarding3 = () => {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={{ alignItems: "flex-end" }} onPress={()=>router.push("/OnBoarding3")}>
-        <Text style={styles.skip}>Skip</Text>
-      </TouchableOpacity>
+      <View style={{ alignItems: "flex-end" }}>
+        <Text style={styles.skip}></Text>
+      </View>
       <View style={{ alignItems: "center", marginTop: 50, gap: 20 }}>
         <Image
-          source={require("../assets/onboarding/ob1.png")}
+          source={require("../assets/onboarding/ob3.png")}
           style={styles.image}
         />
         <Text style={{ fontSize: 26, textAlign: "center" }}>
-          Skilled Professionals You Can Trust
+          Interact by Your Voice
         </Text>
         <Text style={{ textAlign: "center", color: "#757575" }}>
-          Trained Professionals for home and daily services
+          Just speak up your requirements and chill, our assistant will talk
+          with you, hands-free
         </Text>
       </View>
-      <TouchableOpacity style={styles.button} onPress={()=>router.push("/OnBoarding2")}>
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+      <View style={{flexDirection:'row',justifyContent:"center",gap:15}}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/OnBoarding3")}
+        >
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/OnBoarding3")}
+        >
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+      </View>
       <View
         style={{
           flexDirection: "row",
@@ -35,9 +47,9 @@ const OnBoarding1 = () => {
           //   right: "50%",
         }}
       >
+        <View style={styles.dot}></View>
+        <View style={styles.dot}></View>
         <View style={styles.currentDot}></View>
-        <View style={styles.dot}></View>
-        <View style={styles.dot}></View>
       </View>
     </SafeAreaView>
   );
@@ -64,6 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 25,
+    width:"50%"
     // position: "absolute",
     // bottom: 60,
     // left: 20,
@@ -86,4 +99,4 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
-export default OnBoarding1;
+export default OnBoarding3;

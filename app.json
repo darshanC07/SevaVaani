@@ -21,7 +21,13 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.project.SevaVaani",
+      "buildProperties": {
+        "reactNativeArchitectures": [
+          "arm64-v8a"
+        ]
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -1,0 +1,10 @@
+import { Stack } from "expo-router";
+
+export default function Layout() {
+  return (
+    <Stack>
+      <Stack.Screen name="OnBoarding1" options={{ headerShown: false }} />
+      {/* <Stack.Screen name="Home" options={{ headerShown: true, title: "Home" }} /> */}
+    </Stack>
+  );
+}

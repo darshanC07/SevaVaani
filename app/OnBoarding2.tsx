@@ -1,9 +1,9 @@
-import { View, Text, Image, StyleSheet, TouchableHighlight, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-const OnBoarding1 = () => {
-  const router = useRouter();
+const OnBoarding2 = () => {
+    const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={{ alignItems: "flex-end" }} onPress={()=>router.push("/OnBoarding3")}>
@@ -11,18 +11,18 @@ const OnBoarding1 = () => {
       </TouchableOpacity>
       <View style={{ alignItems: "center", marginTop: 50, gap: 20 }}>
         <Image
-          source={require("../assets/onboarding/ob1.png")}
+          source={require("../assets/onboarding/ob2.png")}
           style={styles.image}
         />
         <Text style={{ fontSize: 26, textAlign: "center" }}>
-          Skilled Professionals You Can Trust
+          Book Services in Seconds
         </Text>
         <Text style={{ textAlign: "center", color: "#757575" }}>
-          Trained Professionals for home and daily services
+          Choose a service, pick a time, and relax
         </Text>
       </View>
-      <TouchableOpacity style={styles.button} onPress={()=>router.push("/OnBoarding2")}>
-        <Text style={styles.buttonText}>Continue</Text>
+      <TouchableOpacity style={styles.button} onPress={()=>router.push("/OnBoarding3")}>
+        <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
       <View
         style={{
@@ -35,8 +35,8 @@ const OnBoarding1 = () => {
           //   right: "50%",
         }}
       >
-        <View style={styles.currentDot}></View>
         <View style={styles.dot}></View>
+        <View style={styles.currentDot}></View>
         <View style={styles.dot}></View>
       </View>
     </SafeAreaView>
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
-export default OnBoarding1;
+export default OnBoarding2;

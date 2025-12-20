@@ -31,7 +31,7 @@ const OnBoarding3 = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/OnBoarding3")}
+          onPress={() => router.push("/registration/")}
         >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>

@@ -6,7 +6,11 @@ export default function Layout() {
       <Stack.Screen name="OnBoarding1" options={{ headerShown: false }} />
       <Stack.Screen name="OnBoarding2" options={{ headerShown: false }} />
       <Stack.Screen name="OnBoarding3" options={{ headerShown: false }} />
-      {/* <Stack.Screen name="Home" options={{ headerShown: true, title: "Home" }} /> */}
+      <Stack.Screen name="temp" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="registration"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

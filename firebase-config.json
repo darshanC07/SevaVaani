@@ -1,0 +1,9 @@
+{
+  "apiKey": "AIzaSyDiEp2P5WzpG5rtPSEp8EfF-dZnqe_d8oM",
+  "authDomain": "sevavaani-backend.firebaseapp.com",
+  "databaseURL": "https://sevavaani-backend-default-rtdb.firebaseio.com",
+  "projectId": "sevavaani-backend",
+  "storageBucket": "sevavaani-backend.firebasestorage.app",
+  "messagingSenderId": "1079353672066",
+  "appId": "1:1079353672066:web:cb6892ba6bc8a01ea14f9b"
+}

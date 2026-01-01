@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "com.project.SevaVaani",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -27,10 +28,17 @@
         "reactNativeArchitectures": [
           "arm64-v8a"
         ]
-      }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2caea036-ece5-4399-b8c9-f6d416364a3e"
+      }
+    },
+    "plugins": ["@react-native-firebase/app", "@react-native-firebase/auth"]
   }
 }

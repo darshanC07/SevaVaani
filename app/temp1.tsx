@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Button, TextInput } from 'react-native';
-import {
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
-  getAuth,
-  onAuthStateChanged
-} from "firebase/auth";
-import type { ConfirmationResult } from "firebase/auth";
-// import type { FirebaseAuthTypes } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithPhoneNumber } from '@react-native-firebase/auth';
 
-function App() {
+function temp1() {
   // If null, no SMS has been sent
-  const [confirm, setConfirm] = useState<ConfirmationResult | null>(null);
+  const [confirm, setConfirm] = useState<any>(null);
 
   // verification code (OTP - One-Time-Passcode)
   const [code, setCode] = useState('');
@@ -33,15 +26,12 @@ function App() {
 
   // Handle the button press
   async function handleSignInWithPhoneNumber(phoneNumber: string) {
+    console.log("clicked")
     const confirmation = await signInWithPhoneNumber(getAuth(), phoneNumber);
     setConfirm(confirmation);
   }
 
   async function confirmCode() {
-    if (!confirm) {
-      console.log('No confirmation available.');
-      return;
-    }
     try {
       await confirm.confirm(code);
     } catch (error) {
@@ -53,7 +43,7 @@ function App() {
     return (
       <Button
         title="Phone Number Sign In"
-        onPress={() => handleSignInWithPhoneNumber('+91 9049826205')}
+        onPress={() => handleSignInWithPhoneNumber('+919049826205')}
       />
     );
   }
@@ -65,5 +55,4 @@ function App() {
     </>
   );
 }
-
-export default App;
+export default temp1;

@@ -41,14 +41,19 @@ const OTPScreen = () => {
             <Text style={styles.number}>2</Text>
           </View>
         </View>
-        <View style={[styles.line]}>
-          <View style={styles.circle}>
+        <View style={[styles.line, { backgroundColor: "#4560F4" }]}>
+          <View style={[styles.circle, { backgroundColor: "#4560F4" }]}>
             <Text style={styles.number}>3</Text>
           </View>
         </View>
         <View style={[styles.line]}>
           <View style={styles.circle}>
             <Text style={styles.number}>4</Text>
+          </View>
+        </View>
+        <View style={[styles.line]}>
+          <View style={styles.circle}>
+            <Text style={styles.number}>5</Text>
           </View>
         </View>
       </View>
@@ -126,7 +131,7 @@ const styles = StyleSheet.create({
   },
   line: {
     backgroundColor: "#D9D9D9",
-    width: "25%",
+    width: "20%",
     alignItems: "center",
     height: 5,
     justifyContent: "center",

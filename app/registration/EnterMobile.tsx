@@ -8,14 +8,16 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
+  NativeModules
 } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const EnterMobile = () => {
+  const {requestOTP} = NativeModules;
   const router = useRouter();
-
+  const { uid } = useLocalSearchParams();
   const [countryCode, setCountryCode] = useState("91");
   const [mobile, setMobile] = useState("");
   let { height, width } = useWindowDimensions();
@@ -50,6 +52,11 @@ const EnterMobile = () => {
         <View style={[styles.line]}>
           <View style={styles.circle}>
             <Text style={styles.number}>4</Text>
+          </View>
+        </View>
+        <View style={[styles.line]}>
+          <View style={styles.circle}>
+            <Text style={styles.number}>5</Text>
           </View>
         </View>
       </View>
@@ -90,7 +97,9 @@ const EnterMobile = () => {
         <TouchableOpacity
           style={styles.continueButton}
           activeOpacity={0.9}
-          onPress={() =>{ if(mobile.length==10 )router.push("registration/OTPScreen")}}
+          onPress={() => {
+            if (mobile.length == 10) requestOTP(uid, countryCode, mobile);
+          }}
         >
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
@@ -112,7 +121,7 @@ const styles = StyleSheet.create({
   },
   line: {
     backgroundColor: "#D9D9D9",
-    width: "25%",
+    width: "20%",
     alignItems: "center",
     height: 5,
     justifyContent: "center",

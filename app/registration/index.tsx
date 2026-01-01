@@ -48,6 +48,11 @@ const index = () => {
             <Text style={styles.number}>4</Text>
           </View>
         </View>
+        <View style={[styles.line]}>
+          <View style={styles.circle}>
+            <Text style={styles.number}>5</Text>
+          </View>
+        </View>
       </View>
       <View
         style={{
@@ -117,7 +122,7 @@ const styles = StyleSheet.create({
   line: {
     backgroundColor: "#D9D9D9",
     // backgroundColor:'#4560F4',
-    width: "25%",
+    width: "20%",
     alignItems: "center",
     height: 5,
     justifyContent: "center",

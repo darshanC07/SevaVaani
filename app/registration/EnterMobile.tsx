@@ -8,20 +8,31 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
-  NativeModules
+  NativeModules,
 } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 const EnterMobile = () => {
-  const {requestOTP} = NativeModules;
+  const { OTPRequester } = NativeModules;
   const router = useRouter();
   const { uid } = useLocalSearchParams();
   const [countryCode, setCountryCode] = useState("91");
   const [mobile, setMobile] = useState("");
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  async function handleContinue() {
+    if (mobile.length == 10 && uid) {
+      const text = await OTPRequester.requestOTP(uid);
+      if(text === "success"){
+        router.push("/registration/OTPScreen/");
+      } else{
+        alert("Failed to request OTP. Please try again.");
+      }
+    }
+  }
   return (
     <SafeAreaView
       style={[
@@ -98,7 +109,7 @@ const EnterMobile = () => {
           style={styles.continueButton}
           activeOpacity={0.9}
           onPress={() => {
-            if (mobile.length == 10) requestOTP(uid, countryCode, mobile);
+            handleContinue();
           }}
         >
           <Text style={styles.continueText}>Continue</Text>

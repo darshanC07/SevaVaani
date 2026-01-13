@@ -27,7 +27,7 @@ const EnterMobile = () => {
     if (mobile.length == 10 && uid) {
       const text = await OTPRequester.requestOTP(uid);
       if(text === "success"){
-        router.push("/registration/OTPScreen/");
+        router.push({pathname:"/registration/OTPScreen/", params:{number:mobile,uid:uid}});
       } else{
         alert("Failed to request OTP. Please try again.");
       }

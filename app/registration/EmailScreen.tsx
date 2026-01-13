@@ -15,6 +15,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import config from "../../config.json";
+import { ActivityIndicator } from "react-native";
 
 const EmailScreen = () => {
   const router = useRouter();
@@ -23,7 +24,7 @@ const EmailScreen = () => {
   const [uid, setUid] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     async function checkUserExists() {
       const uid = await AsyncStorage.getItem("uid");
@@ -31,7 +32,7 @@ const EmailScreen = () => {
         // router.replace("/home");
         // setUid(uid);
         return;
-      } 
+      }
     }
 
     checkUserExists();
@@ -39,103 +40,138 @@ const EmailScreen = () => {
 
   async function createUser(email: string, password: string) {
     try {
+      setLoading(true);
+
       const response = await fetch(`${config.serverURL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          "email": email,
-          "password": password,
+          email: email,
+          password: password,
         }),
       });
+
       const data = await response.json();
+
       if (response.ok) {
         await AsyncStorage.setItem("uid", data.uid);
-        router.push(`/registration/EnterMobile/${data.uid}`);
-      }else{
-        console.log("Failed to create user:", data.error);
+
+        router.push({
+          pathname: "/registration/EnterMobile",
+          params: { uid: data.uid },
+        });
+      } else {
+        alert(data.error || "Failed to create user");
       }
     } catch (error) {
       console.log("Error creating user:", error);
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   }
+
   return (
-    <SafeAreaView
-      style={[
-        styles.safe,
-        {
-          height: height,
-          marginTop:
-            Platform.OS === "android" ? StatusBar.currentHeight || 24 : 0,
-        },
-      ]}
-    >
-      <View style={styles.progressContainer}>
-        <View style={[styles.line, { backgroundColor: "#4560F4" }]}>
-          <View style={[styles.circle, { backgroundColor: "#4560F4" }]}>
-            <Text style={styles.number}>1</Text>
-          </View>
+    <>
+      {loading && (
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color="#4560F4" />
         </View>
-        <View style={[styles.line]}>
-          <View style={[styles.circle]}>
-            <Text style={styles.number}>2</Text>
-          </View>
-        </View>
-        <View style={[styles.line]}>
-          <View style={styles.circle}>
-            <Text style={styles.number}>3</Text>
-          </View>
-        </View>
-        <View style={[styles.line]}>
-          <View style={styles.circle}>
-            <Text style={styles.number}>4</Text>
-          </View>
-        </View>
-        <View style={[styles.line]}>
-          <View style={styles.circle}>
-            <Text style={styles.number}>5</Text>
-          </View>
-        </View>
-      </View>
+      )}
 
-      <View
-        style={[styles.content, { height: height - 170, paddingTop: "25%" }]}
+      <SafeAreaView
+        style={[
+          styles.safe,
+          {
+            height: height,
+            marginTop:
+              Platform.OS === "android" ? StatusBar.currentHeight || 24 : 0,
+          },
+        ]}
       >
-        <View style={styles.textContainer}>
-          <Text style={styles.heading}>Create User</Text>
+        <View style={styles.progressContainer}>
+          <View style={[styles.line, { backgroundColor: "#4560F4" }]}>
+            <View style={[styles.circle, { backgroundColor: "#4560F4" }]}>
+              <Text style={styles.number}>1</Text>
+            </View>
+          </View>
+          <View style={[styles.line]}>
+            <View style={[styles.circle]}>
+              <Text style={styles.number}>2</Text>
+            </View>
+          </View>
+          <View style={[styles.line]}>
+            <View style={styles.circle}>
+              <Text style={styles.number}>3</Text>
+            </View>
+          </View>
+          <View style={[styles.line]}>
+            <View style={styles.circle}>
+              <Text style={styles.number}>4</Text>
+            </View>
+          </View>
+          <View style={[styles.line]}>
+            <View style={styles.circle}>
+              <Text style={styles.number}>5</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.detailContainer}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLable}>Email</Text>
-            <TextInput style={styles.inputArea} value={email} onChangeText={(e)=>setEmail(e)}></TextInput>
+        <View
+          style={[styles.content, { height: height - 170, paddingTop: "25%" }]}
+        >
+          <View style={styles.textContainer}>
+            <Text style={styles.heading}>Create User</Text>
           </View>
-          <View style={styles.inputContainer}>
-            <Text style={[styles.inputLable, { width: 90 }]}>Password</Text>
-            <TextInput
-              style={[styles.inputArea, { paddingRight: 50 }]}
-              value={password}
-              onChangeText={(e) => setPassword(e)}
-              secureTextEntry={true}
-            ></TextInput>
+
+          <View style={styles.detailContainer}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLable}>Email</Text>
+              <TextInput
+                style={styles.inputArea}
+                value={email}
+                onChangeText={(e) => setEmail(e)}
+              ></TextInput>
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLable, { width: 90 }]}>Password</Text>
+              <TextInput
+                style={[styles.inputArea, { paddingRight: 50 }]}
+                value={password}
+                onChangeText={(e) => setPassword(e)}
+                secureTextEntry={true}
+              ></TextInput>
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.continueButton,
+                { marginTop: 30, opacity: loading ? 0.7 : 1 },
+              ]}
+              activeOpacity={0.9}
+              disabled={loading}
+              onPress={() => {
+                if (email && password) createUser(email, password);
+                else alert("Please enter email and password");
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.continueText}>Continue</Text>
+              )}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.continueButton, { marginTop: 30 }]}
-            activeOpacity={0.9}
-            onPress={() => {if(email && password) createUser(email, password) ;else alert("Please enter email and password")}}
-          >
+        </View>
+
+        <View style={[styles.footer, { display: "none" }]}>
+          <TouchableOpacity style={styles.continueButton} activeOpacity={0.9}>
             <Text style={styles.continueText}>Continue</Text>
           </TouchableOpacity>
         </View>
-      </View>
-
-      <View style={[styles.footer, { display: "none" }]}>
-        <TouchableOpacity style={styles.continueButton} activeOpacity={0.9}>
-          <Text style={styles.continueText}>Continue</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -239,4 +275,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingLeft: 10,
   },
+  loaderOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(255,255,255,0.6)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
 });

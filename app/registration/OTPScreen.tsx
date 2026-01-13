@@ -10,15 +10,42 @@ import {
   View,
   Keyboard,
 } from "react-native";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, use } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
+import config from "../../config.json";
 
 const OTPScreen = () => {
-  const number = 8469646416;
+  const {number,uid} = useLocalSearchParams();
   const [otp, setOtp] = useState("");
   const otpInputRef = useRef<TextInput>(null);
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  async function handleVerifyOtp() {
+    if (otp.length === 4) {
+      console.log("Verifying OTP:", otp);
+      const res = await fetch(config.serverURL + "/verify_phone", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entered_otp: otp,
+          uid: uid,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log("OTP verified successfully");
+        alert("OTP verified successfully");
+          
+      } else {
+        console.log("OTP verification failed:", data.message);
+        alert("OTP verification failed: " + data.message);
+      }
+    }
+  }
   return (
     <SafeAreaView
       style={[
@@ -110,7 +137,7 @@ const OTPScreen = () => {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueButton} activeOpacity={0.9}>
+        <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={()=>handleVerifyOtp()}>
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </View>

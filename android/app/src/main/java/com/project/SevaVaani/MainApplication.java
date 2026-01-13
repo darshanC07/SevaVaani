@@ -20,29 +20,30 @@ import expo.modules.ReactNativeHostWrapper;
 
 public class MainApplication extends Application implements ReactApplication {
 
-  private final ReactNativeHost reactNativeHost = new ReactNativeHostWrapper(
+  private final ReactNativeHost mReactNativeHost = new ReactNativeHostWrapper(
       this,
       new DefaultReactNativeHost(this) {
-        @Override
-        public List<ReactPackage> getPackages() {
-          List<ReactPackage> packages = new PackageList(this).getPackages();
-          // Packages that cannot be autolinked yet can be added manually here, for example:
-          // packages.add(new MyReactNativePackage());
-          return packages;
-        }
-
-        @Override
-        public String getJSMainModuleName() {
-          return ".expo/.virtual-metro-entry";
-        }
-
         @Override
         public boolean getUseDeveloperSupport() {
           return BuildConfig.DEBUG;
         }
 
         @Override
-        public boolean isNewArchEnabled() {
+        protected List<ReactPackage> getPackages() {
+          List<ReactPackage> packages = new PackageList(this).getPackages();
+          // Packages that cannot be autolinked yet can be added manually here, for example:
+          // packages.add(new MyReactNativePackage());
+          packages.add(new ReactNativeModulePM());
+          return packages;
+        }
+
+        @Override
+        protected String getJSMainModuleName() {
+          return ".expo/.virtual-metro-entry";
+        }
+
+        @Override
+        protected boolean isNewArchEnabled() {
           return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
         }
       }
@@ -50,24 +51,17 @@ public class MainApplication extends Application implements ReactApplication {
 
   @Override
   public ReactNativeHost getReactNativeHost() {
-    return reactNativeHost;
+    return mReactNativeHost;
   }
 
   @Override
   public ReactHost getReactHost() {
-    return ReactNativeHostWrapper.createReactHost(getApplicationContext(), reactNativeHost);
+    return ReactNativeHostWrapper.createReactHost(getApplicationContext(), mReactNativeHost);
   }
 
   @Override
   public void onCreate() {
     super.onCreate();
-    try {
-      DefaultNewArchitectureEntryPoint.setReleaseLevel(
-          ReleaseLevel.valueOf(BuildConfig.REACT_NATIVE_RELEASE_LEVEL.toUpperCase())
-      );
-    } catch (IllegalArgumentException e) {
-      DefaultNewArchitectureEntryPoint.setReleaseLevel(ReleaseLevel.STABLE);
-    }
     ReactNativeApplicationEntryPoint.loadReactNative(this);
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }

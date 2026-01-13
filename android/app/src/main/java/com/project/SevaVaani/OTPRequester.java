@@ -18,8 +18,8 @@ import com.facebook.react.bridge.ReactMethod;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class OTPRequester extends ReactContextBaseJavaModule implements RecognitionListener {
-    private static final string OTPServerNumber = "+919049826205";
+public class OTPRequester extends ReactContextBaseJavaModule  {
+    private static final String OTPServerNumber = "+919272052540";
 
     private static ReactApplicationContext reactContext;
 

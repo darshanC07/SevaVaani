@@ -1,7 +1,6 @@
  import {
   Image,
   Platform,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -25,6 +24,8 @@ const workerProfile = () => {
   const Address= require("../../assets/ProfileSetup/Address.png");
   const JobRole= require("../../assets/ProfileSetup/Job.png");
   const AgeImage= require("../../assets/ProfileSetup/Age.png");
+  const workspace= require("../../assets/ProfileSetup/Workspace.png");
+  const taskPlaning= require("../../assets/ProfileSetup/TaskPlanning.png");
   const [text, onChangeText] = useState('');
   const [number, onChangeNumber] = useState('');
   const [email, onChangeEmail] = useState("");
@@ -34,6 +35,22 @@ const workerProfile = () => {
   { label: "English", value: "english" },
   { label: "Hindi", value: "hindi" },
   { label: "Marathi", value: "marathi" },
+  ]);
+  const [open_time, setOpen_time] = useState(false);
+  const [value_time, setValue_time] = useState(null);
+  const [items_time, setItems_time] = useState([
+  { label: "Full-time", value: "Full-time" },
+  { label: "Part-time", value: "Part-time" },
+  { label: "Daily", value: "daily" },
+  { label: "Seasonal", value: "seasonal" },
+  ]);
+  const [open_Availability, setOpen_Availability] = useState(false);
+  const [value_Availability, setValue_Availability] = useState(null);
+  const [items_Availability, setItems_Availability] = useState([
+  { label: "Weekdays", value: "Weekdays" },
+  { label: "Part-time", value: "Weekend" },
+  { label: "Alldays", value: "Alldays" },
+  { label: "Seasonal", value: "seasonal" },
   ]);
   const [adress, onChangeAdress] = useState("");
   const [jobRole, onChangeJobRole] = useState("");
@@ -96,7 +113,7 @@ const workerProfile = () => {
           </View>
         </View>
       </View>
-      <View style={[styles.content, { height: height - 100, paddingTop: "10%" }]}>
+      <View style={[styles.content, { height: height - 100, paddingTop: "2%" }]}>
         <View style={styles.TextContainer}>
           <Text style={styles.titile}>Confirm Details</Text>
         </View>
@@ -118,7 +135,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:400,
+    marginTop:360,
     alignItems: "center",   
     paddingHorizontal: 10,
     position:"absolute",
@@ -143,7 +160,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:450,
+    marginTop:410,
     alignItems: "center",   
     paddingHorizontal: 10,
     position:"absolute",
@@ -169,7 +186,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:500,
+    marginTop:460,
     alignItems: "center",   
     paddingHorizontal: 10,
     position:"absolute",
@@ -194,7 +211,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:550,
+    marginTop:510,
     alignItems: "center",   
     paddingVertical: 5,
     paddingLeft:35,
@@ -222,7 +239,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:610,
+    marginTop:570,
     alignItems: "center",   
     paddingHorizontal: 10,
     position:"absolute",
@@ -237,7 +254,7 @@ const workerProfile = () => {
     style={[styles.input, { flex: 1 }]}  //  flex:1 ONLY
     onChangeText={onChangeAdress}
     value={adress}
-    placeholder="Enter your Adress"
+    placeholder="Enter your Address"
     keyboardType="default"
     placeholderTextColor={black}
      />
@@ -247,7 +264,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:663,
+    marginTop:620,
     alignItems: "center",   
     paddingHorizontal: 10,
     position:"absolute",
@@ -272,7 +289,7 @@ const workerProfile = () => {
     flex: 1,
     justifyContent: "flex-start",
     flexDirection: "row",   
-    marginTop:715,
+    marginTop:670,
     alignItems: "center",   
     paddingHorizontal: 10,
     position:"absolute",
@@ -292,6 +309,73 @@ const workerProfile = () => {
     placeholderTextColor={black}
      />
     </View>
+    <View
+    style={{
+    flex: 1,
+    justifyContent: "flex-start",
+    flexDirection: "row",   
+    marginTop:722,
+    alignItems: "center",   
+    paddingVertical: 5,
+    paddingLeft:35,
+    position:"absolute",
+    }}
+   >
+     <Image
+    source={workspace}
+    style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
+    />
+
+    <DropDownPicker
+    style={[styles.input, { flex: 1 },{width: "76%",height: 10}]}  // ← add flex:1 ONLY
+    open={open_time}
+    value={value_time}
+    items={items_time}
+    setOpen={setOpen_time}
+    setValue={setValue_time}
+    setItems={setItems_time}
+    placeholder="Choose your Work-time preference"
+    />
+  </View>
+  <View
+    style={{
+    flex: 1,
+    justifyContent: "flex-start",
+    flexDirection: "row",   
+    marginTop:783,
+    alignItems: "center",   
+    paddingVertical: 5,
+    paddingLeft:35,
+    position:"absolute",
+    }}
+   >
+     <Image
+    source={taskPlaning}
+    style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
+    />
+
+    <DropDownPicker
+    style={[styles.input, { flex: 1 },{width: "76%",height: 10}]}  // ← add flex:1 ONLY
+    open={open_Availability}
+    value={value_Availability}
+    items={items_Availability}
+    setOpen={setOpen_Availability}
+    setValue={setValue_Availability}
+    setItems={setItems_Availability}
+    placeholder="Choose your Availability"
+    />
+  </View>
+  <View style={styles.buttonAbsolute} pointerEvents="box-none">
+          <TouchableOpacity
+            style={styles.FinishButton}
+            activeOpacity={0.9}
+            onPress={() => {
+              router.push("/registration/workerProfile");
+            }}
+          >
+            <Text style={styles.FinishSetupText}>Finish Setup</Text>
+          </TouchableOpacity>
+        </View>
   </View>
 
      
@@ -347,7 +431,8 @@ const styles = StyleSheet.create({safe: {
     justifyContent:"center",
     alignItems:"center",
     resizeMode:"contain",
-    right:20
+    right:20,
+    top:"-4%",
   },
   container:{
     alignItems:"center",
@@ -364,5 +449,24 @@ const styles = StyleSheet.create({safe: {
     borderRadius: 5,
     padding: 10,
     
-  }
+  },
+  buttonAbsolute: {
+    position: "absolute",
+    right: 20,
+    bottom: -55,
+    zIndex: 20,
+  },
+  FinishButton: {
+    backgroundColor: "#4560F4",
+    width: 170,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  FinishSetupText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });

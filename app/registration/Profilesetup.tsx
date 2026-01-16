@@ -110,8 +110,8 @@ const ProfileSetup = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.footer} />
-    </SafeAreaView>
+    <View style={styles.footer} />
+  </SafeAreaView>
   );
 };
 

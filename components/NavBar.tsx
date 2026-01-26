@@ -8,12 +8,12 @@ const NavBar = () => {
       <View style={styles.rightSide}>
         <Image
           source={require("../assets/navbar/notification.png")}
-          style={{ width: 35, height: 35 }}
+          style={{ width: 25, height: 25 }}
         />
         <View style={styles.languageIcon}>
           <Image
             source={require("../assets/navbar/language.png")}
-            style={{ width: 30, height: 30 }}
+            style={{ width: 25, height: 25 }}
           />
           <Text style={styles.lang}>EN</Text>
         </View>
@@ -27,7 +27,7 @@ export default NavBar;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#4560F4",
-    height: 60,
+    height: 65,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
     borderBlockColor:'black',
     backgroundColor:'#D7D3D3',
     borderRadius:10,
-    paddingHorizontal:10,
-    gap:5
+    paddingHorizontal:5,
+    gap:2
   },
   lang: {
     color: "black",
     fontWeight: "bold",
-    fontSize: 20,
+    fontSize: 18,
   },
 });

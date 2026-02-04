@@ -11,6 +11,11 @@ export default function Layout() {
         name="registration"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="worker"
+        options={{ headerShown: false }}
+      />
+
     </Stack>
   );
 }

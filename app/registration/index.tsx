@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 const index = () => {
+  const router = useRouter()
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   return (
@@ -20,7 +22,9 @@ const index = () => {
         height: height,
         marginTop:
           Platform.OS === "android" ? StatusBar.currentHeight || 24 : 0,
-        padding:20
+        padding:20,
+        backgroundColor:'white',
+
       }}
     >
       <View style={styles.progressContainer}>
@@ -42,6 +46,11 @@ const index = () => {
         <View style={[styles.line]}>
           <View style={styles.circle}>
             <Text style={styles.number}>4</Text>
+          </View>
+        </View>
+        <View style={[styles.line]}>
+          <View style={styles.circle}>
+            <Text style={styles.number}>5</Text>
           </View>
         </View>
       </View>
@@ -77,7 +86,7 @@ const index = () => {
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.selectionContainer}>
+          <TouchableOpacity style={styles.selectionContainer} onPress={()=>router.push("registration/EnterMobile")}>
             <View style={styles.imgCircle}>
               <Image
                 source={require("../../assets/roles/worker.png")}
@@ -94,9 +103,9 @@ const index = () => {
           </TouchableOpacity>
         </View>
       </View>
-      <View>
-        <TouchableOpacity style={styles.continueButton}>
-          <Text style={{ fontSize: 18, color: "white" }}>Continue</Text>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={()=>router.push("registration/EnterMobile")}>
+          <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
   line: {
     backgroundColor: "#D9D9D9",
     // backgroundColor:'#4560F4',
-    width: "25%",
+    width: "20%",
     alignItems: "center",
     height: 5,
     justifyContent: "center",
@@ -175,15 +184,21 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     // textAlign:'center'
   },
+  footer: {
+    paddingTop: 16,
+    alignItems: "flex-end",
+  },
   continueButton: {
     backgroundColor: "#4560F4",
     width: 170,
-    height: 35,
-    borderBlockColor: "black",
-    borderWidth: 1,
+    height: 44,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
-    alignSelf:'flex-end'
   },
+  continueText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  }
 });

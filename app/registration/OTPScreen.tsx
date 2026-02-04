@@ -33,6 +33,7 @@ const OTPScreen = () => {
         body: JSON.stringify({
           entered_otp: otp,
           uid: uid,
+          role : "worker"
         }),
       });
       const data = await res.json();

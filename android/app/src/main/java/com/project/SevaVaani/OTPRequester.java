@@ -35,10 +35,10 @@ public class OTPRequester extends ReactContextBaseJavaModule  {
     }
 
     @ReactMethod
-    public void requestOTP(String uid, Promise promise) {
+    public void requestOTP(String uid,String role, Promise promise) {
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            String msg = "VERIFICATION REQUEST " + uid;
+            String msg = "VERIFICATION REQUEST " + uid + " " + role;
             smsManager.sendTextMessage(OTPServerNumber, null, msg, null, null);
             promise.resolve("success");
         } catch (Exception e) {

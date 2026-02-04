@@ -6,12 +6,16 @@ import {
   StatusBar,
   Platform,
   Image,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../../components/NavBar";
 import { setStatusBarTranslucent } from "expo-status-bar";
+import BottomNavBar from "../../components/BottomNavBar";
+import WorkerJobCard from "../../components/WorkerJobCard";
 
 const index = () => {
   const router = useRouter();
@@ -22,20 +26,68 @@ const index = () => {
       style={{
         height: height,
         backgroundColor: "white",
+        flex: 1,
       }}
     >
       <NavBar />
       <View style={styles.mainContainer}>
         <View style={styles.topContainer}>
-          <View style={styles.horizontalLine}/>
+          <View style={styles.horizontalLine} />
           <View style={styles.statusButton}>
             <Text style={styles.statusText}>Online</Text>
             <View style={styles.statusIcon}>
-              <Image source={require("../../assets/tools.png")} style={{width:20, height:20}}/>
+              <Image
+                source={require("../../assets/tools.png")}
+                style={{ width: 20, height: 20 }}
+              />
+            </View>
+          </View>
+          <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
+            <Text style={{ color: "white", fontSize: 15 }}>
+              Good morning Ramesh
+            </Text>
+            <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>
+              Find Jobs Near You
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              paddingHorizontal: 20,
+              marginTop: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            <TextInput
+              style={styles.searchBar}
+              placeholder="Search Jobs..."
+              placeholderTextColor={"grey"}
+            />
+            <View style={styles.searchIconBox}>
+              <Image
+                source={require("../../assets/worker/Search.png")}
+                style={{ height: 30, width: 30 }}
+              />
             </View>
           </View>
         </View>
+        <View
+          id="available-jobs-container"
+          style={styles.contentContainer}
+        >
+          <Text style={{fontSize : 18, fontWeight : '500'}}>Available Jobs near You</Text>
+          <ScrollView style={{marginVertical : 10,}}>
+            <WorkerJobCard />
+            <WorkerJobCard />
+            <WorkerJobCard />
+            <WorkerJobCard />
+            <WorkerJobCard />
+          </ScrollView>
+        </View>
       </View>
+      <BottomNavBar />
     </SafeAreaView>
   );
 };
@@ -48,45 +100,90 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   topContainer: {
-    height: 100,
+    height: 160,
     // alignItems: "center",
     backgroundColor: "#4560F4",
   },
   horizontalLine: {
     height: 1,
-    width: '94%',
-    backgroundColor: 'white',
+    width: "94%",
+    backgroundColor: "white",
     marginBottom: 10,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
-  statusButton:{
-    alignSelf:'center',
-    borderBlockColor:'black',
-    backgroundColor:'#58EE74',
-    borderRadius:30,
-    flexDirection:'row',
-    paddingHorizontal:10,
-    paddingVertical:5,
-    justifyContent:'center',
-    alignItems:'center',
-    borderWidth:1,
-    paddingLeft:15
+  statusButton: {
+    alignSelf: "center",
+    borderBlockColor: "black",
+    backgroundColor: "#58EE74",
+    borderRadius: 30,
+    flexDirection: "row",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    paddingLeft: 15,
   },
-  statusText:{
-    color:'black',
-    fontWeight:'bold',
-    fontSize:19,
-    marginRight:5,
+  statusText: {
+    color: "black",
+    fontWeight: "bold",
+    fontSize: 19,
+    marginRight: 5,
   },
-  statusIcon:{
-    borderRadius:'50%',
-    backgroundColor:'white',
-    padding:3,
-    borderBlockColor:'black',
-    width:32,
-    height:32,
-    justifyContent:'center',
-    alignItems:'center',
-    borderWidth:1
-  }
+  statusIcon: {
+    borderRadius: "50%",
+    backgroundColor: "white",
+    padding: 3,
+    borderBlockColor: "black",
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  searchBar: {
+    width: "90%",
+    height: 45,
+    borderColor: "black",
+    borderWidth: 1,
+    backgroundColor: "white",
+    borderRadius: 10,
+    color: "black",
+    paddingHorizontal: 10,
+    fontSize: 16,
+  },
+  searchIconBox: {
+    height: 45,
+    width: 45,
+    backgroundColor: "#2781E2",
+    borderColor: "black",
+    borderWidth: 1,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  contentContainer: {
+    width: "94%",
+    height: "67%",
+    borderRadius: 10,
+    borderWidth : 1,
+    borderColor : 'black',
+    marginHorizontal: 20,
+    alignSelf: "center",
+    position: "relative",
+    top: 40,
+    paddingHorizontal : 10,
+    paddingTop : 10,
+    backgroundColor: "#fff", 
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 12, 
+
+    elevation: 10,
+  },
 });

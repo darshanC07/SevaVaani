@@ -12,7 +12,7 @@ export default function Layout() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="client"
+        name="worker"
         options={{ headerShown: false }}
       />
 

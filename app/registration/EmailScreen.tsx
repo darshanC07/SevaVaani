@@ -50,6 +50,7 @@ const EmailScreen = () => {
         body: JSON.stringify({
           email: email,
           password: password,
+          role : "worker"
         }),
       });
 

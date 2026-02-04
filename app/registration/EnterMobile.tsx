@@ -25,7 +25,7 @@ const EnterMobile = () => {
 
   async function handleContinue() {
     if (mobile.length == 10 && uid) {
-      const text = await OTPRequester.requestOTP(uid);
+      const text = await OTPRequester.requestOTP(uid,"worker");
       if(text === "success"){
         router.push({pathname:"/registration/OTPScreen/", params:{number:mobile,uid:uid}});
       } else{

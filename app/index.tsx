@@ -1,123 +1,104 @@
 import { Redirect } from "expo-router";
-import { useState, useEffect, use } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  TextInput,
-  PermissionsAndroid,
-  Platform,
-} from "react-native";
-import Geolocation from "react-native-geolocation-service";
-import ReactNativeForegroundService from "@supersami/rn-foreground-service";
+import { useEffect, useState } from "react";
+import { Platform } from "react-native";
+import * as Location from "expo-location";
+import * as TaskManager from "expo-task-manager";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { UpdateWorkerLoc } from "../services/GlobalAPIs";
+
+
+const WORKER_ID = "darshan";
+
+const LOCATION_TASK = "BACKGROUND_LOCATION_TASK";
+
+TaskManager.defineTask(LOCATION_TASK, async (task: any) => {
+  const { data, error } = task;
+  if (error) {
+    console.error("Location task error:", error);
+    return;
+  }
+
+  if (!data || !data.locations || data.locations.length === 0) {
+    return;
+  }
+
+  const { latitude, longitude } = data.locations[0].coords;
+
+  try {
+    UpdateWorkerLoc(WORKER_ID, latitude, longitude).then((res) => {
+      console.log("Location updated successfully:", res);
+    }).catch((err) => {
+      console.error("Error updating location:", err);
+    });
+  } catch (err) {
+    console.error("Failed to send location:", err);
+  }
+});
+
 export default function Index() {
-  const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms/";
-  useEffect(() => {
-    requestLocationPermission();
-    updateForeground();
-    Notification();
-    // startTracking();
-    return () => {
-      if (watchId != null) {
-        Geolocation.clearWatch(watchId);
-      }
-    };
-  }, []);
-  let watchId: number | null = null;
-  const requestLocationPermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: "Location Permission",
-          message: "App needs access to your location.",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK",
-        }
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("Location permission granted");
-      } else {
-        console.log("Location permission denied");
-      }
-      const backgroundGranted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        {
-          title: "Background Location Permission",
-          message: "We need access to your location for background tracking.",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK",
-        }
-      );
-      if (backgroundGranted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("Background location permission granted");
-      } else {
-        console.log("Background location permission denied");
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  };
-  const updateForeground = () => {
-    ReactNativeForegroundService.add_task(() => startTracking(), {
-      delay: 100,
-      onLoop: true,
-      taskId: "taskid",
-      onError: (e) => console.log(`Error logging:`, e),
+  // const fetchUser = async () => {
+  //   const user = await AsyncStorage.getItem("uid");
+  //   return user;
+  // };
 
-    });
-  };
-  const Notification = () => {
-    ReactNativeForegroundService.start({
-      id: 1244,
-      title: "Location Tracking",
-      message: "Location Tracking",
-      icon: "ic_launcher",
-      button: false,
-      button2: false,
-      setOnlyAlertOnce: "true",
-      color: "#000000",
-    });
-  };
+  // useEffect(() => {
+  //   const user = fetchUser();
+  //   if (user) {
+  //     startBackgroundLocation();
+  //   } else {
+  //     stopBackgroundLocation();
+  //   }
 
-  const startTracking = async () => {
-    watchId = Geolocation.watchPosition(
-      async (position) => {
-        let x = [position.coords.longitude, position.coords.latitude];
-        console.warn("darshan", Platform.OS, x[1], x[0]);
-        let res = await fetch(BASE_URL + "/update_loc/worker/darshan", {
-          method: "POST",
-          body: JSON.stringify({
-            lat: x[1],
-            long: x[0],
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+  //   return () => {
+  //     stopBackgroundLocation();
+  //   };
+  // }, []);
 
-        const responseData = await res.json();
+  // const startBackgroundLocation = async () => {
+  //   const fg = await Location.requestForegroundPermissionsAsync();
+  //   if (!fg.granted) {
+  //     console.log("Foreground location permission denied");
+  //     return;
+  //   }
 
-        console.log(
-          responseData["message"]
-            ? responseData["message"]
-            : responseData["error"]
-        );
-      },
-      (error) => {
-        console.log("maperror in getting location", error.code, error.message);
-      },
-      { enableHighAccuracy: true, distanceFilter: 0 }
-    );
-  };
-  
-  return <Redirect href="/registration/EmailScreen" />;
-  // return <Redirect href="/worker" />;
-  // return <Redirect href="/AppWriteOTP" />;
+  //   const bg = await Location.requestBackgroundPermissionsAsync();
+  //   if (!bg.granted) {
+  //     console.log("Background location permission denied");
+  //     return;
+  //   }
+
+  //   const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+  //     LOCATION_TASK
+  //   );
+  //   if (hasStarted) return;
+
+  //   await Location.startLocationUpdatesAsync(LOCATION_TASK, {
+  //     accuracy: Location.Accuracy.High,
+  //     timeInterval: 5000,
+  //     distanceInterval: 10,
+  //     pausesUpdatesAutomatically: false,
+  //     activityType:
+  //       Platform.OS === "android"
+  //         ? Location.LocationActivityType.OtherNavigation
+  //         : undefined,
+  //     foregroundService: {
+  //       notificationTitle: "Location Tracking",
+  //       notificationBody: "Tracking your location in background",
+  //     },
+  //   });
+
+  //   console.log("Background location tracking started");
+  // };
+
+  // const stopBackgroundLocation = async () => {
+  //   const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+  //     LOCATION_TASK
+  //   );
+  //   if (hasStarted) {
+  //     await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+  //     console.log("Background location tracking stopped");
+  //   }
+  // };
+
+  return <Redirect href="/worker/Profile" />;
 }

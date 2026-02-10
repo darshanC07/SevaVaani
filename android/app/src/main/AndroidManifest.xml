@@ -19,6 +19,7 @@
     </intent>
   </queries>
   <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="true" android:theme="@style/AppTheme" android:supportsRtl="true" android:enableOnBackInvokedCallback="false">
+    <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDvSScst0iYdH7cs25OPhg8ZLaesfedxY8"/>
     <meta-data android:name="com.supersami.foregroundservice.notification_channel_description" android:value="Sticky Description."/>
     <meta-data android:name="com.supersami.foregroundservice.notification_channel_name" android:value="Sticky Title"/>
     <meta-data android:name="com.supersami.foregroundservice.notification_color" android:resource="@color/blue"/>
@@ -70,6 +71,16 @@
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   
   
   
@@ -85,5 +96,7 @@
   
   
   
+  
+    <uses-library android:name="org.apache.http.legacy" android:required="false"/>
   </application>
 </manifest>

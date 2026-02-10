@@ -1,104 +1,135 @@
 import { Redirect } from "expo-router";
-import { useEffect, useState } from "react";
-import { Platform } from "react-native";
-import * as Location from "expo-location";
-import * as TaskManager from "expo-task-manager";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { UpdateWorkerLoc } from "../services/GlobalAPIs";
-
-
-const WORKER_ID = "darshan";
-
-const LOCATION_TASK = "BACKGROUND_LOCATION_TASK";
-
-TaskManager.defineTask(LOCATION_TASK, async (task: any) => {
-  const { data, error } = task;
-  if (error) {
-    console.error("Location task error:", error);
-    return;
-  }
-
-  if (!data || !data.locations || data.locations.length === 0) {
-    return;
-  }
-
-  const { latitude, longitude } = data.locations[0].coords;
-
-  try {
-    UpdateWorkerLoc(WORKER_ID, latitude, longitude).then((res) => {
-      console.log("Location updated successfully:", res);
-    }).catch((err) => {
-      console.error("Error updating location:", err);
-    });
-  } catch (err) {
-    console.error("Failed to send location:", err);
-  }
-});
+import {  useEffect, useRef, useState } from "react";
+import { startBackgroundLocation } from "./_layout";
+import EventSource from "react-native-sse";
+import { BASE_URL } from "../services/GlobalAPIs";
+import { getUserId } from "../utils/AsyncStorageUtils";
+import { useRouter } from "expo-router";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "react-native";
 
 export default function Index() {
-  // const fetchUser = async () => {
-  //   const user = await AsyncStorage.getItem("uid");
-  //   return user;
-  // };
+  const router = useRouter();
+  const [user, setUser] = useState<string | null>(null);
+  const esRef = useRef<EventSource>(null);
 
-  // useEffect(() => {
-  //   const user = fetchUser();
-  //   if (user) {
-  //     startBackgroundLocation();
-  //   } else {
-  //     stopBackgroundLocation();
-  //   }
+  useEffect(() => {
+    let isMounted = true;
 
-  //   return () => {
-  //     stopBackgroundLocation();
-  //   };
-  // }, []);
+    const initSSE = async () => {
+      const uid = await getUserId();
+      // const uid = "0qD34d7S4FaD6afL6cVN3nOE9zJ2";
+      // const uid = "EbQZRH72wnRu2DRpzieDdR9rSvG2";
+      if (!uid || !isMounted) return;
 
-  // const startBackgroundLocation = async () => {
-  //   const fg = await Location.requestForegroundPermissionsAsync();
-  //   if (!fg.granted) {
-  //     console.log("Foreground location permission denied");
-  //     return;
-  //   }
+      const es: EventSource = new EventSource(`${BASE_URL}/call_events/${uid}`);
+      if (es != null) {
+        console.log("SSE connection established for user:", uid);
+      }
+      esRef.current = es;
 
-  //   const bg = await Location.requestBackgroundPermissionsAsync();
-  //   if (!bg.granted) {
-  //     console.log("Background location permission denied");
-  //     return;
-  //   }
+      es.addEventListener("incoming_call", (event: any) => {
+        const data = JSON.parse(event.data);
+        console.log("Received incoming call event:", data);
+        console.log("Incoming call from:", data.caller_uid);
+        if (uid === data.callee_uid) {
+          router.push({
+            pathname: "/call/IncomingCall",
+            params: {
+              caller_uid: data.caller_uid,
+              caller_name: data.caller_name,
+            },
+          });
+        }
+      });
+      es.addEventListener("call_hangup", (event: any) => {
+        const data = JSON.parse(event.data);
+        console.log("on call ended or hang up:", data);
+        if (uid === data.caller_uid) {
+          router.push("/call/HangUpCallScreen");
+        }
+      });
 
-  //   const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-  //     LOCATION_TASK
-  //   );
-  //   if (hasStarted) return;
+      es.addEventListener("call_joined", (event: any) => {
+        const data = JSON.parse(event.data);
+        console.log("on call joined:", data);
+        if (uid === data.user1) {
+          router.push({
+            pathname: "/call/CallRoomScreen",
+            params: {
+              CN: data.channelName,
+              anotherUserId: data.user2,
+              anotherUserName: data.user2_name,
+            },
+          });
+        } else if (uid === data.user2) {
+          router.push({
+            pathname: "/call/CallRoomScreen",
+            params: {
+              CN: data.channelName,
+              anotherUserId: data.user1,
+              anotherUserName: data.user1_name,
+            },
+          });
+        }
+      });
 
-  //   await Location.startLocationUpdatesAsync(LOCATION_TASK, {
-  //     accuracy: Location.Accuracy.High,
-  //     timeInterval: 5000,
-  //     distanceInterval: 10,
-  //     pausesUpdatesAutomatically: false,
-  //     activityType:
-  //       Platform.OS === "android"
-  //         ? Location.LocationActivityType.OtherNavigation
-  //         : undefined,
-  //     foregroundService: {
-  //       notificationTitle: "Location Tracking",
-  //       notificationBody: "Tracking your location in background",
-  //     },
-  //   });
+      es.addEventListener("connected", (event: any) => {
+        const data = JSON.parse(event.data);
+        console.log("event connected:", data);
+      });
 
-  //   console.log("Background location tracking started");
-  // };
+      es.onerror = (err: any) => {
+        console.log("SSE error", err);
+      };
 
-  // const stopBackgroundLocation = async () => {
-  //   const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-  //     LOCATION_TASK
-  //   );
-  //   if (hasStarted) {
-  //     await Location.stopLocationUpdatesAsync(LOCATION_TASK);
-  //     console.log("Background location tracking stopped");
-  //   }
-  // };
+      es.onopen = () => {
+        console.log("SSE connected");
+      };
 
-  return <Redirect href="/worker/Profile" />;
+    };
+
+    startBackgroundLocation();
+    initSSE();
+
+    // return () => {
+    //   isMounted = false;
+    //   if (esRef.current) {
+    //     esRef.current.close();
+    //   }
+    // };
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const uid = await getUserId();
+      setUser(uid);
+      if (uid === null) {
+        router.replace("/login");
+      } else {
+        router.replace("/worker");
+      }
+    }
+    fetchUser();
+  }, [user]);
+
+
+  // return <Redirect href="/registration/EmailScreen" />;
+  // return <Redirect href="/client/WorkerRankingScreen" />;
+  // return <Redirect href="/client/" />;
+  // return <Redirect href="/login/" />;
+  // return <Redirect href="/client/JobRequest" />;
+  // return <Redirect href="/client/CommunicationRoom" />;
+  // return <Redirect href="/call/CallingScreen" />;
+  // return <Redirect href="/call/IncomingCall" />;
+  // return <Redirect href="/call/CallRoomScreen" />;
+  // return <Redirect href="/rooms/" />;
+  // return <Redirect href="/AppWriteOTP" />;
+  return (
+    <SafeAreaProvider style={{ flex: 1 , backgroundColor : '#4560F4'}}>
+      <SafeAreaView style={{ flex: 1,justifyContent:'center', alignItems:'center' }}>
+        <Text style={{ color: 'white', fontSize: 30,fontWeight : 'bold' }}>SevaVaani</Text>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  )
 }

@@ -1,7 +1,9 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
+import { useRouter } from "expo-router";
 
 const WorkerJobCard = () => {
+  const router = useRouter();
   return (
     <View style={styles.jobCard}>
       <View style={styles.jobDetailTopContainer}>
@@ -40,11 +42,11 @@ const WorkerJobCard = () => {
           <Text style={{ fontSize: 18, fontWeight: "700" }}>₹ 500</Text>
         </View>
       </View>
-      <View style={styles.jobViewButton}>
+      <TouchableOpacity style={styles.jobViewButton} onPress={()=>router.push("/worker/SendRequest")}>
         <Text style={{ fontSize: 16, color: "white", fontWeight: "bold" }}>
           View Job
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };

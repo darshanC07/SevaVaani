@@ -9,18 +9,40 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../../components/NavBar";
 import { setStatusBarTranslucent } from "expo-status-bar";
 import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
+import { getUserId } from "../../utils/AsyncStorageUtils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const index = () => {
   const router = useRouter();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  const [user, setUser] = useState<string | null>('');
+  const [name, setName] = useState<string | null>('');
+  const [email, setEmail] = useState<string | null>('');
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const userId = await getUserId();
+      console.log("Fetched User ID:", userId);
+      if (!userId) {
+        router.replace("/login");
+      }
+      const uname = await AsyncStorage.getItem("name");
+      const uemail = await AsyncStorage.getItem("email");
+      setUser(userId);
+      setName(uname);
+      setEmail(uemail);
+    }
+    fetchUserId();
+   }, [])
   return (
     <SafeAreaView
       style={{
@@ -44,7 +66,7 @@ const index = () => {
           </View>
           <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
             <Text style={{ color: "white", fontSize: 15 }}>
-              Good morning Ramesh
+              Good morning {name}
             </Text>
             <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>
               Find Jobs Near You

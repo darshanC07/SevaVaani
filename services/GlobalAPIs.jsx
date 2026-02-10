@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms";
+export const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms";
 
 export const UpdateWorkerLoc = async (WORKER_ID,latitude,longitude) => {
   try {
@@ -17,5 +17,52 @@ export const UpdateWorkerLoc = async (WORKER_ID,latitude,longitude) => {
     return response.data;
   } catch (err) {
     console.error("Failed to send location:", err);
+  }
+};
+
+
+export const loginWorker = async (email, password) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/login`,
+      { email: email, password: password, role: "worker" },
+      { "Content-Type": "application/json" },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Login failed:", err);
+    throw err;
+  }
+};
+
+
+export const hangUpCall = async (CALLER_ID) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/hangup_call`,
+      { caller_uid: CALLER_ID },
+      { "Content-Type": "application/json" },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to hang up call:", err);
+  }
+};
+
+export const joinCall = async (user1, user1_name, user2, user2_name) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/join_call`,
+      {
+        user1: user1,
+        user1_name: user1_name,
+        user2: user2,
+        user2_name: user2_name,
+      },
+      { "Content-Type": "application/json" },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to join call:", err);
   }
 };

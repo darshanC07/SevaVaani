@@ -8,7 +8,7 @@ const NavBar = () => {
     <View style={styles.container}>
       <Text style={styles.appName}>SevaVaani</Text>
       <View style={styles.rightSide}>
-       <TouchableOpacity onPress={()=>router.push("/client/Notifications")}>
+       <TouchableOpacity onPress={()=>router.push("/worker/Notifications")}>
           <Image
             source={require("../assets/navbar/notification.png")}
             style={{ width: 35, height: 35 }}

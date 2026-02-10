@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@tsconfig/react-native": "^3.0.8",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.2.3",
     "typescript": "~5.9.2"
   },

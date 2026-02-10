@@ -113,18 +113,6 @@ export default function Index() {
     fetchUser();
   }, [user]);
 
-
-  // return <Redirect href="/registration/EmailScreen" />;
-  // return <Redirect href="/client/WorkerRankingScreen" />;
-  // return <Redirect href="/client/" />;
-  // return <Redirect href="/login/" />;
-  // return <Redirect href="/client/JobRequest" />;
-  // return <Redirect href="/client/CommunicationRoom" />;
-  // return <Redirect href="/call/CallingScreen" />;
-  // return <Redirect href="/call/IncomingCall" />;
-  // return <Redirect href="/call/CallRoomScreen" />;
-  // return <Redirect href="/rooms/" />;
-  // return <Redirect href="/AppWriteOTP" />;
   return (
     <SafeAreaProvider style={{ flex: 1 , backgroundColor : '#4560F4'}}>
       <SafeAreaView style={{ flex: 1,justifyContent:'center', alignItems:'center' }}>

@@ -3,6 +3,7 @@ import * as Location from "expo-location";
 import { Platform } from "react-native";
 import "../tasks/LocationTask";
 import { getUserId } from "../utils/AsyncStorageUtils";
+import { GlobalStatesProvider } from "../contexts/GlobalContext";
 
 const LOCATION_TASK = "BACKGROUND_LOCATION_TASK";
 
@@ -68,6 +69,7 @@ const stopBackgroundLocation = async () => {
 
 export default function Layout() {
   return (
+    <GlobalStatesProvider>
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="OnBoarding1" options={{ headerShown: false }} />
@@ -91,5 +93,6 @@ export default function Layout() {
         options={{ headerShown: false }}
       />
     </Stack>
+    </GlobalStatesProvider>
   );
 }

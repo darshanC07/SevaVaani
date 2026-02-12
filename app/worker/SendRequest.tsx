@@ -9,14 +9,44 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import React from "react";
-import { useRouter } from "expo-router";
+import React, { use, useEffect, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { timeAgo } from "@/components/WorkerJobCard";
+import { fetchClientDetails } from "@/services/GlobalAPIs";
 
 const SendRequest = () => {
-    const router = useRouter();
+  const { jobData } = useLocalSearchParams();
+  const [client,setClient] = useState({
+  name: "",
+  jobs_count: 0,
+});
+  const job = jobData?JSON.parse(jobData) : {};
+  const router = useRouter();
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  useEffect(() => {
+    console.log("Received job data in SendRequest:", job);
+  }, []);
+
+  async function getUserDetails(uid) {
+    try{
+      console.log("Fetching details for user ID:", uid);
+      const clientData = await fetchClientDetails(uid);
+      console.log("Client details response:", clientData);
+      setClient(clientData.client);
+    } catch(error){
+      console.error("Error fetching user details:", error);
+    }
+  }
+
+  useEffect(() => {
+    if(job && job.user_id){
+      console.log("Job data received in SendRequest:", job);
+      getUserDetails(job.user_id);
+    }
+  }, []);
 
   return (
     <SafeAreaView
@@ -32,11 +62,11 @@ const SendRequest = () => {
           <Text style={styles.sectionHeading}>Employer Information</Text>
           <View style={styles.employerRow}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>RS</Text>
+              <Text style={styles.avatarText}>{client?.name[0]}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.name}>Rajesh Singh</Text>
-              <Text style={styles.jobs}>• 8 Jobs Posted</Text>
+              <Text style={styles.name}>{client?.name}</Text>
+              {client?.jobs_count===0?<Text style={styles.jobs}>No Jobs Posted</Text>:<Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
             </View>
             <View style={styles.ratingBox}>
               <Text style={styles.star}>★</Text>
@@ -55,15 +85,21 @@ const SendRequest = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Job Details</Text>
           {[
-            ["Service", "Plumbing"],
-            ["Job", "Bathroom pipe leak repair"],
-            ["Duration", "4 Hrs"],
-            ["Location", "Baner"],
-            ["Budget Range", "₹300-₹500"],
+            ["Service", job.service_type],
+            ["Job", job.job_details],
+            ["Description", job.description],
+            ["Duration", job.duration],
+            ["Location", job.location],
+            ["Budget Range", "₹" + job.budget_min + "-₹" + job.budget_max],
           ].map(([label, value]) => (
             <View key={label} style={styles.row}>
               <Text style={styles.label}>{label}</Text>
-              <Text style={styles.value}>{value}</Text>
+              {label === "Description" ? <Text style={{
+                fontSize: 15,
+                fontWeight: "500",
+                width : 200,
+                textAlign : 'right'
+              }}>{value}</Text> : <Text style={styles.value}>{value}</Text>}
             </View>
           ))}
         </View>
@@ -82,7 +118,7 @@ const SendRequest = () => {
             </View>
           </View>
         </View>
-        <Text style={styles.posted}>Posted 10 mins ago</Text>
+        <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
         <View style={styles.card}>
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>Enter Your Price</Text>
@@ -102,9 +138,9 @@ const SendRequest = () => {
             <TextInput style={styles.textInput} />
           </View>
         </View>
-      
+
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.backBtn} onPress={()=>router.back()}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
             <Text style={styles.backText}>Go back</Text>
           </TouchableOpacity>
 
@@ -112,7 +148,7 @@ const SendRequest = () => {
             style={styles.sendBtn}
             onPress={() => router.push("/worker/ConfirmRequest")}
           >
-              <Text style={styles.sendText}>Send Request</Text>
+            <Text style={styles.sendText}>Send Request</Text>
           </TouchableOpacity>
         </View>
         <View style={{ height: 40 }} />
@@ -281,6 +317,7 @@ const styles = StyleSheet.create({
   posted: {
     textAlign: "center",
     marginTop: 10,
+    fontWeight: '500'
   },
 
   inputRow: {

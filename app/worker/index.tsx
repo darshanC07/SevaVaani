@@ -18,6 +18,7 @@ import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
 import { getUserId } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchAllJobs } from "@/services/GlobalAPIs";
 
 const index = () => {
   const router = useRouter();
@@ -27,6 +28,26 @@ const index = () => {
   const [user, setUser] = useState<string | null>('');
   const [name, setName] = useState<string | null>('');
   const [email, setEmail] = useState<string | null>('');
+
+  const [jobs, setJobs] = useState([]);
+  const [isJobDataLoading, setIsJobDataLoading] = useState(false);
+
+  async function getJobs() {
+    setIsJobDataLoading(true);
+    try {
+      const data = await fetchAllJobs();
+      console.log("Raw job data response:", data);
+      if (data.code === 1) {
+        setJobs(data.jobs);
+      } else {
+        console.error("Failed to fetch job data - data.length:", data.jobs.length);
+      }
+    } catch (error) {
+      console.error("Error fetching job data:", error);
+    } finally {
+      setIsJobDataLoading(false);
+    }
+  }
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -40,9 +61,10 @@ const index = () => {
       setUser(userId);
       setName(uname);
       setEmail(uemail);
+      getJobs();
     }
     fetchUserId();
-   }, [])
+  }, [])
   return (
     <SafeAreaView
       style={{
@@ -99,13 +121,26 @@ const index = () => {
           id="available-jobs-container"
           style={styles.contentContainer}
         >
-          <Text style={{fontSize : 18, fontWeight : '500'}}>Available Jobs near You</Text>
-          <ScrollView style={{marginVertical : 10,}}>
+          <Text style={{ fontSize: 18, fontWeight: '500' }}>Available Jobs near You</Text>
+          <ScrollView contentContainerStyle={{ marginVertical: 10,}}>
+            {
+              isJobDataLoading ? (
+                <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading jobs...</Text>
+              ) : (
+                jobs.length > 0 ? (
+                  jobs.map((job) => (
+                    <WorkerJobCard key={job.job_id} jobData={job}/>
+                  ))
+                ) : (
+                  <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}><Text style={{ textAlign: 'center', marginTop: 20 }}>No jobs found.</Text></View>
+                )
+              )
+            }
+            
+            {/* <WorkerJobCard />
             <WorkerJobCard />
             <WorkerJobCard />
-            <WorkerJobCard />
-            <WorkerJobCard />
-            <WorkerJobCard />
+            <WorkerJobCard /> */}
           </ScrollView>
         </View>
       </View>
@@ -188,15 +223,16 @@ const styles = StyleSheet.create({
     width: "94%",
     height: "67%",
     borderRadius: 10,
-    borderWidth : 1,
-    borderColor : 'black',
+    borderWidth: 1,
+    borderColor: 'black',
     marginHorizontal: 20,
     alignSelf: "center",
     position: "relative",
     top: 40,
-    paddingHorizontal : 10,
-    paddingTop : 10,
-    backgroundColor: "#fff", 
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom :10,
+    backgroundColor: "#fff",
 
     shadowColor: "#000",
     shadowOffset: {
@@ -204,7 +240,7 @@ const styles = StyleSheet.create({
       height: 6,
     },
     shadowOpacity: 0.18,
-    shadowRadius: 12, 
+    shadowRadius: 12,
 
     elevation: 10,
   },

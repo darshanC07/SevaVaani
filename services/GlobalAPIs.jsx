@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms";
 
-export const UpdateWorkerLoc = async (WORKER_ID,latitude,longitude) => {
+export const UpdateWorkerLoc = async (WORKER_ID, latitude, longitude) => {
   try {
     const response = await axios.post(
       `${BASE_URL}/update_loc/worker/${WORKER_ID}`,
@@ -20,12 +20,11 @@ export const UpdateWorkerLoc = async (WORKER_ID,latitude,longitude) => {
   }
 };
 
-
-export const loginWorker = async (email, password) => {
+export const loginWorker = async (email, password, role) => {
   try {
     const response = await axios.post(
       `${BASE_URL}/login`,
-      { email: email, password: password, role: "worker" },
+      { email: email, password: password, role: role },
       { "Content-Type": "application/json" },
     );
     return response.data;
@@ -34,7 +33,6 @@ export const loginWorker = async (email, password) => {
     throw err;
   }
 };
-
 
 export const hangUpCall = async (CALLER_ID) => {
   try {
@@ -64,5 +62,25 @@ export const joinCall = async (user1, user1_name, user2, user2_name) => {
     return response.data;
   } catch (err) {
     console.error("Failed to join call:", err);
+  }
+};
+
+export const fetchAllJobs = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/jobs`);
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch jobs:", err);
+    throw err;
+  }
+};
+
+export const fetchClientDetails = async (CLIENT_ID) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/client/${CLIENT_ID}`);
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch client details:", err);
+    throw err;
   }
 };

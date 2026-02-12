@@ -8,20 +8,24 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { use, useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { timeAgo } from "@/components/WorkerJobCard";
-import { fetchClientDetails } from "@/services/GlobalAPIs";
+import { callUser, fetchClientDetails } from "@/services/GlobalAPIs";
+import { getUserId, getUserName } from "@/utils/AsyncStorageUtils";
 
 const SendRequest = () => {
   const { jobData } = useLocalSearchParams();
-  const [client,setClient] = useState({
-  name: "",
-  jobs_count: 0,
-});
-  const job = jobData?JSON.parse(jobData) : {};
+  const [workerId, setWorkerId] = useState('');
+  const [workerName, setWorkerName] = useState('');
+  const [client, setClient] = useState({
+    name: "User",
+    jobs_count: 0
+  });
+  const job = jobData ? JSON.parse(jobData) : {};
   const router = useRouter();
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
@@ -31,21 +35,55 @@ const SendRequest = () => {
   }, []);
 
   async function getUserDetails(uid) {
-    try{
+    try {
       console.log("Fetching details for user ID:", uid);
       const clientData = await fetchClientDetails(uid);
       console.log("Client details response:", clientData);
       setClient(clientData.client);
-    } catch(error){
+    } catch (error) {
       console.error("Error fetching user details:", error);
     }
   }
 
-  useEffect(() => {
-    if(job && job.user_id){
-      console.log("Job data received in SendRequest:", job);
-      getUserDetails(job.user_id);
+  const handleCall = async () => {
+    const clientId = job?.user_id;
+    const response = await callUser(workerId, workerName, clientId);
+    console.log("Call User Response:", response);
+
+    if (response["code"] == -1) {
+      Alert.alert('User offline', 'The recipient is offline, please try again after some time', [
+        {
+          text: 'OK',
+          onPress: () => console.log('OK Pressed'),
+        },
+      ]);
+    } else {
+      router.push({
+        pathname: '/call/CallingScreen',
+        params: {
+          callee_uid: clientId,
+          callee_name: client?.name || "Client"
+        }
+      });
     }
+  }
+
+  useEffect(() => {
+    const startFunction = async () => {
+      if (job && job.user_id) {
+        console.log("Job data received in SendRequest:", job);
+        getUserDetails(job.user_id);
+        const userId = await getUserId();
+        if (userId) {
+          setWorkerId(userId);
+          const userName = await getUserName();
+          setWorkerName(userName || '');
+        } else {
+          console.error("User ID not found in AsyncStorage");
+        }
+      }
+    }
+    startFunction();
   }, []);
 
   return (
@@ -66,7 +104,7 @@ const SendRequest = () => {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{client?.name}</Text>
-              {client?.jobs_count===0?<Text style={styles.jobs}>No Jobs Posted</Text>:<Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
+              {client?.jobs_count === 0 ? <Text style={styles.jobs}>No Jobs Posted</Text> : <Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
             </View>
             <View style={styles.ratingBox}>
               <Text style={styles.star}>★</Text>
@@ -74,7 +112,7 @@ const SendRequest = () => {
             </View>
           </View>
           <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.callBtn}>
+            <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
               <Text style={styles.callText}>📞 Call User</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.msgBtn}>
@@ -97,8 +135,8 @@ const SendRequest = () => {
               {label === "Description" ? <Text style={{
                 fontSize: 15,
                 fontWeight: "500",
-                width : 200,
-                textAlign : 'right'
+                width: 200,
+                textAlign: 'right'
               }}>{value}</Text> : <Text style={styles.value}>{value}</Text>}
             </View>
           ))}

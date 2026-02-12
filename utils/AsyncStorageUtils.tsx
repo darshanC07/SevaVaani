@@ -11,4 +11,13 @@ export const getUserId = async (): Promise<string | null> => {
     }
 };
 
-
+export const getUserName = async (): Promise<string | null> => {
+    try {
+        const userName = await AsyncStorage.getItem("name");
+        console.log("Retrieved User Name from AsyncStorage:", userName);
+        return userName ?? null;
+    } catch (error) {
+        console.error("Error retrieving user name:", error);
+        return null;
+    };
+};

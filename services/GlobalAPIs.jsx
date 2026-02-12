@@ -84,3 +84,21 @@ export const fetchClientDetails = async (CLIENT_ID) => {
     throw err;
   }
 };
+
+
+export const callUser = async (WORKER_ID, WORKER_NAME, CLIENT_ID) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/call_user`,
+      {
+        caller_uid: WORKER_ID,
+        caller_name: WORKER_NAME,
+        callee_uid: CLIENT_ID,
+      },
+      { "Content-Type": "application/json" },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to call client:", err);
+  }
+};

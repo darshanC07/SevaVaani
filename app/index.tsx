@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import {  useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { startBackgroundLocation } from "./_layout";
 import EventSource from "react-native-sse";
 import { BASE_URL } from "../services/GlobalAPIs";
@@ -7,10 +7,12 @@ import { getUserId } from "../utils/AsyncStorageUtils";
 import { useRouter } from "expo-router";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "react-native";
+import { GlobalStatesContext } from "@/contexts/GlobalContext";
 
 export default function Index() {
   const router = useRouter();
   const [user, setUser] = useState<string | null>(null);
+  const contextObj = useContext(GlobalStatesContext);
   const esRef = useRef<EventSource>(null);
 
   useEffect(() => {
@@ -74,6 +76,12 @@ export default function Index() {
         }
       });
 
+      es.addEventListener("new_job", (event: any) => {
+        const data = JSON.parse(event.data);
+        console.log("Received new job event:", data);
+        contextObj.setJobs((prevJobs) => [...prevJobs, data]);
+      });
+
       es.addEventListener("connected", (event: any) => {
         const data = JSON.parse(event.data);
         console.log("event connected:", data);
@@ -114,9 +122,9 @@ export default function Index() {
   }, [user]);
 
   return (
-    <SafeAreaProvider style={{ flex: 1 , backgroundColor : '#4560F4'}}>
-      <SafeAreaView style={{ flex: 1,justifyContent:'center', alignItems:'center' }}>
-        <Text style={{ color: 'white', fontSize: 30,fontWeight : 'bold' }}>SevaVaani</Text>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#4560F4' }}>
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: 'white', fontSize: 30, fontWeight: 'bold' }}>SevaVaani</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   )

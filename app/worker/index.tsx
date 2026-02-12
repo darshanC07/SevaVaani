@@ -9,7 +9,7 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../../components/NavBar";
@@ -19,9 +19,11 @@ import WorkerJobCard from "../../components/WorkerJobCard";
 import { getUserId } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchAllJobs } from "@/services/GlobalAPIs";
+import { GlobalStatesContext } from "@/contexts/GlobalContext";
 
 const index = () => {
   const router = useRouter();
+  const contextObj = useContext(GlobalStatesContext)
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
@@ -29,7 +31,6 @@ const index = () => {
   const [name, setName] = useState<string | null>('');
   const [email, setEmail] = useState<string | null>('');
 
-  const [jobs, setJobs] = useState([]);
   const [isJobDataLoading, setIsJobDataLoading] = useState(false);
 
   async function getJobs() {
@@ -38,7 +39,7 @@ const index = () => {
       const data = await fetchAllJobs();
       console.log("Raw job data response:", data);
       if (data.code === 1) {
-        setJobs(data.jobs);
+        contextObj.setJobs(data.jobs);
       } else {
         console.error("Failed to fetch job data - data.length:", data.jobs.length);
       }
@@ -88,7 +89,7 @@ const index = () => {
           </View>
           <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
             <Text style={{ color: "white", fontSize: 15 }}>
-              Good morning {name}
+              Good morning {name} 
             </Text>
             <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>
               Find Jobs Near You
@@ -127,8 +128,8 @@ const index = () => {
               isJobDataLoading ? (
                 <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading jobs...</Text>
               ) : (
-                jobs.length > 0 ? (
-                  jobs.map((job) => (
+                contextObj.jobs.length > 0 ? (
+                  contextObj.jobs.map((job) => (
                     <WorkerJobCard key={job.job_id} jobData={job}/>
                   ))
                 ) : (

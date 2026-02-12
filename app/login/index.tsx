@@ -14,7 +14,7 @@ const index = () => {
 
   async function handleLoginIn() {
     try {
-      const response = await loginWorker(email, password);
+      const response = await loginWorker(email, password,"worker");
       // response = JSON.parse(response);
       console.log("Login response:", response);
       if (response["code"]===200) {

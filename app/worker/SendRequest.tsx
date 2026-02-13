@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { timeAgo } from "@/components/WorkerJobCard";
@@ -26,6 +26,8 @@ const SendRequest = () => {
     jobs_count: 0
   });
   const job = jobData ? JSON.parse(jobData) : {};
+  const [toSendRequest, setToSendRequest] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
@@ -94,7 +96,7 @@ const SendRequest = () => {
         flex: 1,
       }}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
         <Text style={styles.title}>Send Job request</Text>
         <View style={styles.employerCard}>
           <Text style={styles.sectionHeading}>Employer Information</Text>
@@ -121,7 +123,11 @@ const SendRequest = () => {
           </View>
         </View>
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Job Details</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: 'space-between', marginBottom: 10, }}>
+            <Text style={styles.cardTitle}>Job Details</Text>
+            <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
+          </View>
+
           {[
             ["Service", job.service_type],
             ["Job", job.job_details],
@@ -156,30 +162,69 @@ const SendRequest = () => {
             </View>
           </View>
         </View>
-        <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
-        <View style={styles.card}>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Enter Your Price</Text>
-            <View style={styles.inputBox}>
-              <Text>₹300</Text>
-            </View>
-          </View>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Estimated Time</Text>
-            <View style={styles.inputBoxRow}>
-              <Text>1</Text>
-              <Text style={{ marginLeft: 6 }}>h</Text>
-            </View>
-          </View>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Message (optional)</Text>
-            <TextInput style={styles.textInput} />
-          </View>
-        </View>
+        {
+          !toSendRequest && (
+            <View style={styles.footer}>
+              <TouchableOpacity style={styles.acceptBtn}
+                onPress={() => router.push("/worker/ConfirmRequest")}>
+                <Text style={styles.acceptText}>Accept</Text>
+              </TouchableOpacity>
 
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backText}>Go back</Text>
+              <TouchableOpacity
+                style={styles.sendBtn}
+                // onPress={() => router.push("/worker/ConfirmRequest")}
+                onPress={() => {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                  setToSendRequest(true);
+                }}
+              >
+                <Text style={styles.sendText}>Send Request</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        }
+
+        {
+          toSendRequest && (
+            <View style={styles.card}>
+              <Text style={[styles.cardTitle, { marginBottom: 10, textAlign: 'center' }]}>Your Proposal</Text>
+
+              <View style={styles.horizontalLine} />
+              <View style={styles.inputRow}>
+                <Text style={styles.inputLabel}>Enter Your Price</Text>
+                <View style={styles.inputBox}>
+                  <Text>₹300</Text>
+                </View>
+              </View>
+              <View style={styles.inputRow}>
+                <Text style={styles.inputLabel}>Estimated Time</Text>
+                <View style={styles.inputBoxRow}>
+                  <Text>1</Text>
+                  <Text style={{ marginLeft: 6 }}>h</Text>
+                </View>
+              </View>
+              <View style={styles.inputRow}>
+                <Text style={styles.inputLabel}>Message (optional)</Text>
+                <TextInput style={styles.textInput} />
+              </View>
+              <TouchableOpacity
+                style={styles.sendBtn}
+                onPress={() => router.push("/worker/ConfirmRequest")}
+                // onPress={() => {
+                //   scrollViewRef.current?.scrollToEnd({ animated: true });
+                //   setToSendRequest(true);
+                // }}
+              >
+                <Text style={styles.sendText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        }
+
+
+        {/* <View style={styles.footer}>
+          <TouchableOpacity style={styles.acceptBtn} onPress={() => router.back()}>
+            <Text style={styles.acceptText}>Go back</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -188,7 +233,7 @@ const SendRequest = () => {
           >
             <Text style={styles.sendText}>Send Request</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
@@ -212,7 +257,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
   },
-
+  horizontalLine: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "grey",
+    marginBottom: 10,
+    alignSelf: "center",
+  },
   sectionHeading: {
     fontSize: 14,
     fontWeight: "500",
@@ -307,7 +358,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "500",
-    marginBottom: 10,
+    marginBottom: 5
   },
 
   row: {
@@ -354,8 +405,9 @@ const styles = StyleSheet.create({
 
   posted: {
     textAlign: "center",
-    marginTop: 10,
-    fontWeight: '500'
+    fontWeight: '400',
+    fontSize: 13,
+    color: 'grey'
   },
 
   inputRow: {
@@ -393,15 +445,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  backBtn: {
+  acceptBtn: {
     flex: 1,
-    backgroundColor: "#9FD0DC",
+    backgroundColor: "#0ca45b",
     padding: 14,
     borderRadius: 12,
     alignItems: "center",
   },
 
-  backText: {
+  acceptText: {
     fontSize: 16,
     color: "white",
   },

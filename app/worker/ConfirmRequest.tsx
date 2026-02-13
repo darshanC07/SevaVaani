@@ -22,7 +22,7 @@ const ConfirmRequest = () => {
       setSeconds((prev) => {
         if (prev === 1) {
           clearInterval(timer);
-          router.replace("/");
+          router.replace("/worker");
         }
         return prev - 1;
       });
@@ -40,22 +40,19 @@ const ConfirmRequest = () => {
       }}
     >
       <View style={styles.container}>
-        {/* Check Icon */}
         <View style={styles.checkCircle}>
           <Text style={styles.check}>✓</Text>
         </View>
 
-        {/* Title */}
         <Text style={styles.title}>Request sent Successfully</Text>
 
-        {/* Buttons */}
         <TouchableOpacity style={styles.primaryBtn}>
           <Text style={styles.primaryText}>View Request</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => router.replace("/")}
+          onPress={() => router.replace("/worker")}
         >
           <Text style={styles.primaryText}>Home Page</Text>
         </TouchableOpacity>

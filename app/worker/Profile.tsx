@@ -7,18 +7,35 @@ import {
   Image,
   Button,
   ScrollView,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomNavBar from "../../components/BottomNavBar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 const Profile = () => {
+  const router = useRouter();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  async function handleLogOut(){
+    try {
+      await AsyncStorage.removeItem('userId');
+      await AsyncStorage.removeItem('name');
+      await AsyncStorage.removeItem('email');
+      router.replace('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      Alert.alert('Logout Failed', 'An error occurred while logging out. Please try again.'); 
+    }
+  }
+
   return (
     <SafeAreaView
       style={{
@@ -228,9 +245,9 @@ const Profile = () => {
                 <Text style={{ fontWeight: '500', color: "white" }}>Refer Now</Text>
               </View>
             </View>
-            <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 10, borderColor: 'black', borderWidth: 1, padding: 10, borderRadius: 10 }}>
+            <TouchableOpacity style={{ width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 10, borderColor: 'black', borderWidth: 1, padding: 10, borderRadius: 10 }} onPress={handleLogOut}>
               <Text style={{ color: 'red', fontSize: 20, fontWeight: '500' }}>Logout</Text>
-            </View>
+            </TouchableOpacity>
           </ScrollView>
         </View>
       </View>

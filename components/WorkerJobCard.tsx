@@ -1,7 +1,27 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
+import { useRouter } from "expo-router";
 
-const WorkerJobCard = () => {
+export function timeAgo(isoTime) {
+  const past = new Date(isoTime);
+  const now = new Date();
+  const diff = now - past;
+
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return `${sec} seconds ago`;
+
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} minutes ago`;
+
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hours ago`;
+
+  const day = Math.floor(hr / 24);
+  return `${day} days ago`;
+}
+
+const WorkerJobCard = ({ jobData }) => {
+  const router = useRouter();
   return (
     <View style={styles.jobCard}>
       <View style={styles.jobDetailTopContainer}>
@@ -10,23 +30,27 @@ const WorkerJobCard = () => {
           style={styles.jobIcon}
         />
         <View style={{ gap: 3 }}>
-          <Text style={{ fontSize: 17, fontWeight: "700" }}>Plumbing Work</Text>
+          <Text style={{ fontSize: 17, fontWeight: "700" }}>{jobData.job_details}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
             <Image
               source={require("../assets/worker/Location.png")}
               style={{ width: 15, height: 15 }}
             />
-            <Text>123, MG Road, Bangalore</Text>
+            {/* <Text>123, MG Road, Bangalore</Text> */}
+            <Text>{jobData.location}</Text>
           </View>
         </View>
         <View style={{ alignItems: "center", flex: 1, height: "100%" }}>
-          <Text>2 mins ago</Text>
+          <Text>{timeAgo(jobData.posted_at)}</Text>
         </View>
       </View>
       <View style={styles.jobContent}>
         <Text style={{ flex: 8 / 10, marginRight: 10 }}>
-          The tap is leaking and A..............
+          {jobData.description.length > 35 ? jobData.description.substring(0, 35) + "..." : jobData.description}
         </Text>
+        {/* <Text style={{ flex: 8 / 10, marginRight: 10 }}>
+          The tap is leaking and A..............
+        </Text> */}
         <View
           style={{
             borderLeftWidth: 1,
@@ -37,14 +61,15 @@ const WorkerJobCard = () => {
             justifyContent: "center",
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: "700" }}>₹ 500</Text>
+          <Text style={{ fontSize: 18, fontWeight: "700" }}>₹ {jobData.budget_max}</Text>
+          {/* <Text style={{ fontSize: 18, fontWeight: "700" }}>₹ 500</Text> */}
         </View>
       </View>
-      <View style={styles.jobViewButton}>
+      <TouchableOpacity style={styles.jobViewButton} onPress={() => router.push({ pathname: "/worker/SendRequest", params: { jobData : JSON.stringify(jobData) } })}>
         <Text style={{ fontSize: 16, color: "white", fontWeight: "bold" }}>
           View Job
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };

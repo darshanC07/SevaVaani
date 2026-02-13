@@ -1,15 +1,18 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View ,TouchableOpacity} from "react-native";
 import React from "react";
+import { useRouter } from "expo-router";
 
 const NavBar = () => {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <Text style={styles.appName}>SevaVaani</Text>
       <View style={styles.rightSide}>
-        <Image
-          source={require("../assets/navbar/notification.png")}
-          style={{ width: 35, height: 35 }}
-        />
+       <TouchableOpacity onPress={()=>router.push("/worker/Notifications")}>
+          <Image
+            source={require("../assets/navbar/notification.png")}
+            style={{ width: 35, height: 35 }}
+          /></TouchableOpacity>
         <View style={styles.languageIcon}>
           <Image
             source={require("../assets/navbar/language.png")}

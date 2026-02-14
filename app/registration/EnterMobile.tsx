@@ -10,7 +10,7 @@ import {
   View,
   NativeModules,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
@@ -22,6 +22,15 @@ const EnterMobile = () => {
   const [mobile, setMobile] = useState("");
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  // Bypass EnterMobile screen and automatically navigate to OTP screen
+  useEffect(() => {
+    if (uid) {
+      // Use a default mobile number for bypass
+      const defaultMobile = "1234567890";
+      router.push({pathname:"/registration/OTPScreen/", params:{number:defaultMobile,uid:uid}});
+    }
+  }, [uid, router]);
 
   async function handleContinue() {
     if (mobile.length == 10 && uid) {

@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
+import { Job } from "../types";
 
-export function timeAgo(isoTime) {
+export function timeAgo(isoTime: string) {
   const past = new Date(isoTime);
   const now = new Date();
-  const diff = now - past;
+  const diff = now.getTime() - past.getTime();
 
   const sec = Math.floor(diff / 1000);
   if (sec < 60) return `${sec} seconds ago`;
@@ -20,7 +21,7 @@ export function timeAgo(isoTime) {
   return `${day} days ago`;
 }
 
-const WorkerJobCard = ({ jobData }) => {
+const WorkerJobCard = ({ jobData }: { jobData: Job }) => {
   const router = useRouter();
   return (
     <View style={styles.jobCard}>

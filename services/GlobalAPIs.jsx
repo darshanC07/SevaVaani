@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms";
+export const BASE_URL = "http://172.18.59.210:5000";
 
 export const UpdateWorkerLoc = async (WORKER_ID, latitude, longitude) => {
   try {

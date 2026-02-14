@@ -86,7 +86,7 @@ const index = () => {
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.selectionContainer} onPress={()=>router.push("registration/EnterMobile")}>
+          <TouchableOpacity style={styles.selectionContainer} onPress={()=>router.push("registration/Profilesetup")}>
             <View style={styles.imgCircle}>
               <Image
                 source={require("../../assets/roles/worker.png")}

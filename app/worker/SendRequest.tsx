@@ -15,7 +15,7 @@ import React, { use, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { timeAgo } from "@/components/WorkerJobCard";
-import { callUser, fetchClientDetails, sendProposal } from "@/services/GlobalAPIs";
+import { callUser, fetchClientDetails, sendAcceptJobRequest, sendProposal } from "@/services/GlobalAPIs";
 import { getUserId, getUserName } from "@/utils/AsyncStorageUtils";
 import SuccessModal from "@/components/SuccessModal";
 import ErrorModal from "@/components/ErrorModal";
@@ -38,6 +38,9 @@ const SendRequest = () => {
   
   const [isSuccessModal, setSuccessModal] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const router = useRouter();
   let { height } = useWindowDimensions();
@@ -80,8 +83,11 @@ const SendRequest = () => {
           message: message
         });
       if (res) {
+        setSuccessMsg("Your proposal is sent successfully.");
         setSuccessModal(true);
       }else {
+        console.error("Failed to send proposal:", res);
+        setErrorMsg("Failed to send your proposal. Please try again after sometime.");
         setShowErrorAlert(true);
       }
     } catch (error) {
@@ -90,6 +96,24 @@ const SendRequest = () => {
     }
     // router.push("/worker/ConfirmRequest")
   }
+
+  const handleAcceptJobReq = async() => {
+    try {
+      const res = await sendAcceptJobRequest(workerId,workerName, job.job_id);
+      if (res) {
+        setSuccessMsg("Your request to accept job is sent successfully.");
+        setSuccessModal(true);
+      }else {
+        console.error("Failed to send acceptance request:", res);
+        setErrorMsg("Failed to send acceptance request. Please try again after sometime.");
+        setShowErrorAlert(true);
+      }
+    } catch (error) {
+      console.error("Error sending acceptance req:", error);
+      setShowErrorAlert(true);
+    }
+  }
+
 
   const handleCall = async () => {
     const clientId = job?.user_id;
@@ -211,7 +235,7 @@ const SendRequest = () => {
             !toSendRequest && (
               <View style={styles.footer}>
                 <TouchableOpacity style={styles.acceptBtn}
-                  onPress={() => router.push("/worker/ConfirmRequest")}>
+                  onPress={handleAcceptJobReq}>
                   <Text style={styles.acceptText}>Accept</Text>
                 </TouchableOpacity>
 
@@ -289,8 +313,8 @@ const SendRequest = () => {
         </View> */}
           <View style={{ height: 40 }} />
         </ScrollView>
-        <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message="Your proposal is sent successfully." handleOk={() => setSuccessModal(false)} />
-        <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message="Failed to send your proposal." />
+        <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => setSuccessModal(false)} />
+        <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message={errorMsg} />
 
       </KeyboardAvoidingView>
     </SafeAreaView>

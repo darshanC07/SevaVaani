@@ -121,3 +121,21 @@ export const sendProposal = async (WORKER_ID,WORKER_NAME, JOB_ID, PROPOSAL_DATA)
     return null;
   }
 };
+
+export const sendAcceptJobRequest = async (WORKER_ID,WORKER_NAME, JOB_ID) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/worker_accept_job_req`,
+      {
+        workerId: WORKER_ID,
+        workerName: WORKER_NAME,
+        jobId: JOB_ID,
+      },
+      { "Content-Type": "application/json" },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to accept job:", err);
+    return null;
+  }
+};

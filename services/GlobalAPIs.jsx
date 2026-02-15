@@ -102,3 +102,22 @@ export const callUser = async (WORKER_ID, WORKER_NAME, CLIENT_ID) => {
     console.error("Failed to call client:", err);
   }
 };
+
+export const sendProposal = async (WORKER_ID,WORKER_NAME, JOB_ID, PROPOSAL_DATA) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/send_proposal`,
+      {
+        worker_id: WORKER_ID,
+        worker_name: WORKER_NAME,
+        job_id: JOB_ID,
+        proposal_data: PROPOSAL_DATA,
+      },
+      { "Content-Type": "application/json" },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to send proposal:", err);
+    return null;
+  }
+};

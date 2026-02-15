@@ -9,13 +9,16 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView
 } from "react-native";
 import React, { use, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { timeAgo } from "@/components/WorkerJobCard";
-import { callUser, fetchClientDetails } from "@/services/GlobalAPIs";
+import { callUser, fetchClientDetails, sendProposal } from "@/services/GlobalAPIs";
 import { getUserId, getUserName } from "@/utils/AsyncStorageUtils";
+import SuccessModal from "@/components/SuccessModal";
+import ErrorModal from "@/components/ErrorModal";
 
 const SendRequest = () => {
   const { jobData } = useLocalSearchParams();
@@ -28,6 +31,14 @@ const SendRequest = () => {
   const job = jobData ? JSON.parse(jobData) : {};
   const [toSendRequest, setToSendRequest] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [time, setTime] = useState(0);
+  const [selectedTime, setSelectedTime] = useState("Hours");
+  const [price, setPrice] = useState(0);
+  const [message, setMessage] = useState("");
+  
+  const [isSuccessModal, setSuccessModal] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
   const router = useRouter();
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
@@ -45,6 +56,39 @@ const SendRequest = () => {
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
+  }
+
+
+  const handleSendProposal = async () => {
+    try {
+      if (price === 0 || time === 0) {
+        Alert.alert("Invalid input", "Please enter a valid price and time estimate for your proposal.", [
+          {
+            text: 'OK',
+            onPress: () => console.log('OK Pressed'),
+          },
+        ]);
+        return;
+      }
+
+      const res = await sendProposal(
+        workerId,workerName, job.job_id,
+        {
+          price: price,
+          time_estimate: time,
+          time_format: selectedTime,
+          message: message
+        });
+      if (res) {
+        setSuccessModal(true);
+      }else {
+        setShowErrorAlert(true);
+      }
+    } catch (error) {
+      console.error("Error sending proposal:", error);
+      setShowErrorAlert(true);
+    }
+    // router.push("/worker/ConfirmRequest")
   }
 
   const handleCall = async () => {
@@ -96,133 +140,142 @@ const SendRequest = () => {
         flex: 1,
       }}
     >
-      <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-        <Text style={styles.title}>Send Job request</Text>
-        <View style={styles.employerCard}>
-          <Text style={styles.sectionHeading}>Employer Information</Text>
-          <View style={styles.employerRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{client?.name[0]}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{client?.name}</Text>
-              {client?.jobs_count === 0 ? <Text style={styles.jobs}>No Jobs Posted</Text> : <Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
-            </View>
-            <View style={styles.ratingBox}>
-              <Text style={styles.star}>★</Text>
-              <Text style={styles.rating}>4.3</Text>
-            </View>
-          </View>
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
-              <Text style={styles.callText}>📞 Call User</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.msgBtn}>
-              <Text style={styles.msgText}>💬 Send Message</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.card}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: 'space-between', marginBottom: 10, }}>
-            <Text style={styles.cardTitle}>Job Details</Text>
-            <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
-          </View>
-
-          {[
-            ["Service", job.service_type],
-            ["Job", job.job_details],
-            ["Description", job.description],
-            ["Duration", job.duration],
-            ["Location", job.location],
-            ["Budget Range", "₹" + job.budget_min + "-₹" + job.budget_max],
-          ].map(([label, value]) => (
-            <View key={label} style={styles.row}>
-              <Text style={styles.label}>{label}</Text>
-              {label === "Description" ? <Text style={{
-                fontSize: 15,
-                fontWeight: "500",
-                width: 200,
-                textAlign: 'right'
-              }}>{value}</Text> : <Text style={styles.value}>{value}</Text>}
-            </View>
-          ))}
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Client Message</Text>
-          <View style={styles.messageBox}>
-            <Text>Need urgent plumbing work for bathroom leak</Text>
-          </View>
-          <View style={styles.voiceBox}>
-            <Text>
-              Voice message available{"\n"}
-              Tap to listen to client’s description
-            </Text>
-            <View style={styles.playBtn}>
-              <Text style={{ color: "white", fontWeight: "bold" }}>▶</Text>
-            </View>
-          </View>
-        </View>
-        {
-          !toSendRequest && (
-            <View style={styles.footer}>
-              <TouchableOpacity style={styles.acceptBtn}
-                onPress={() => router.push("/worker/ConfirmRequest")}>
-                <Text style={styles.acceptText}>Accept</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.sendBtn}
-                // onPress={() => router.push("/worker/ConfirmRequest")}
-                onPress={() => {
-                  scrollViewRef.current?.scrollToEnd({ animated: true });
-                  setToSendRequest(true);
-                }}
-              >
-                <Text style={styles.sendText}>Send Request</Text>
-              </TouchableOpacity>
-            </View>
-          )
-        }
-
-        {
-          toSendRequest && (
-            <View style={styles.card}>
-              <Text style={[styles.cardTitle, { marginBottom: 10, textAlign: 'center' }]}>Your Proposal</Text>
-
-              <View style={styles.horizontalLine} />
-              <View style={styles.inputRow}>
-                <Text style={styles.inputLabel}>Enter Your Price</Text>
-                <View style={styles.inputBox}>
-                  <Text>₹300</Text>
-                </View>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
+          <Text style={styles.title}>Send Job request</Text>
+          <View style={styles.employerCard}>
+            <Text style={styles.sectionHeading}>Employer Information</Text>
+            <View style={styles.employerRow}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{client?.name[0]}</Text>
               </View>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputLabel}>Estimated Time</Text>
-                <View style={styles.inputBoxRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{client?.name}</Text>
+                {client?.jobs_count === 0 ? <Text style={styles.jobs}>No Jobs Posted</Text> : <Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
+              </View>
+              <View style={styles.ratingBox}>
+                <Text style={styles.star}>★</Text>
+                <Text style={styles.rating}>4.3</Text>
+              </View>
+            </View>
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
+                <Text style={styles.callText}>📞 Call User</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.msgBtn}>
+                <Text style={styles.msgText}>💬 Send Message</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.card}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: 'space-between', marginBottom: 10, }}>
+              <Text style={styles.cardTitle}>Job Details</Text>
+              <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
+            </View>
+
+            {[
+              ["Service", job.service_type],
+              ["Job", job.job_details],
+              ["Description", job.description],
+              ["Duration", job.duration],
+              ["Location", job.location],
+              ["Budget Range", "₹" + job.budget_min + "-₹" + job.budget_max],
+            ].map(([label, value]) => (
+              <View key={label} style={styles.row}>
+                <Text style={styles.label}>{label}</Text>
+                {label === "Description" ? <Text style={{
+                  fontSize: 15,
+                  fontWeight: "500",
+                  width: 200,
+                  textAlign: 'right'
+                }}>{value}</Text> : <Text style={styles.value}>{value}</Text>}
+              </View>
+            ))}
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Client Message</Text>
+            <View style={styles.messageBox}>
+              <Text>Need urgent plumbing work for bathroom leak</Text>
+            </View>
+            <View style={styles.voiceBox}>
+              <Text>
+                Voice message available{"\n"}
+                Tap to listen to client’s description
+              </Text>
+              <View style={styles.playBtn}>
+                <Text style={{ color: "white", fontWeight: "bold" }}>▶</Text>
+              </View>
+            </View>
+          </View>
+          {
+            !toSendRequest && (
+              <View style={styles.footer}>
+                <TouchableOpacity style={styles.acceptBtn}
+                  onPress={() => router.push("/worker/ConfirmRequest")}>
+                  <Text style={styles.acceptText}>Accept</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.sendBtn}
+                  // onPress={() => router.push("/worker/ConfirmRequest")}
+                  onPress={() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                    setToSendRequest(true);
+                  }}
+                >
+                  <Text style={styles.sendText}>Send Request</Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }
+
+          {
+            toSendRequest && (
+              <View style={styles.card}>
+                <Text style={[styles.cardTitle, { marginBottom: 10, textAlign: 'center' }]}>Your Proposal</Text>
+
+                <View style={styles.horizontalLine} />
+                <View style={styles.inputRow}>
+                  <Text style={styles.inputLabel}>Enter Your Price</Text>
+                  <TextInput style={styles.textInput} keyboardType="number-pad" value={price ? price.toString() : ''} onChangeText={(e) => setPrice(parseInt(e) || 0)} />
+                </View>
+                <View style={styles.inputRow}>
+                  <Text style={styles.inputLabel}>Estimated Time</Text>
+                  {/* <View style={styles.inputBoxRow}>
                   <Text>1</Text>
                   <Text style={{ marginLeft: 6 }}>h</Text>
+                </View> */}
+                  <View style={{ flexDirection: 'row', gap: 5 }}>
+                    <TextInput style={[styles.textInput, {
+                      width: '72%'
+                    }]}
+                      value={time ? time.toString() + " " + selectedTime : ''}
+                      onChangeText={(e) => setTime(parseInt(e) || 0)}
+                      keyboardType="number-pad" />
+                    <TouchableOpacity style={{ width: 40, borderWidth: 1, borderRadius: 5, justifyContent: 'center', alignItems: 'center' }} onPress={() => setSelectedTime("Days")}><Text>Day</Text></TouchableOpacity>
+                    <TouchableOpacity style={{ width: 40, borderWidth: 1, borderRadius: 5, justifyContent: 'center', alignItems: 'center' }} onPress={() => setSelectedTime("Hours")}><Text>Hrs</Text></TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputLabel}>Message (optional)</Text>
-                <TextInput style={styles.textInput} />
-              </View>
-              <TouchableOpacity
-                style={styles.sendBtn}
-                onPress={() => router.push("/worker/ConfirmRequest")}
+                <View style={styles.inputRow}>
+                  <Text style={styles.inputLabel}>Message (optional)</Text>
+                  <TextInput style={styles.textInput} value={message} onChangeText={setMessage} />
+                </View>
+                <TouchableOpacity
+                  style={styles.sendBtn}
+                  onPress={handleSendProposal}
                 // onPress={() => {
                 //   scrollViewRef.current?.scrollToEnd({ animated: true });
                 //   setToSendRequest(true);
                 // }}
-              >
-                <Text style={styles.sendText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          )
-        }
+                >
+                  <Text style={styles.sendText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }
 
 
-        {/* <View style={styles.footer}>
+          {/* <View style={styles.footer}>
           <TouchableOpacity style={styles.acceptBtn} onPress={() => router.back()}>
             <Text style={styles.acceptText}>Go back</Text>
           </TouchableOpacity>
@@ -234,8 +287,12 @@ const SendRequest = () => {
             <Text style={styles.sendText}>Send Request</Text>
           </TouchableOpacity>
         </View> */}
-        <View style={{ height: 40 }} />
-      </ScrollView>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+        <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message="Your proposal is sent successfully." handleOk={() => setSuccessModal(false)} />
+        <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message="Failed to send your proposal." />
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -436,6 +493,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 10,
+    color: "black",
   },
 
   footer: {

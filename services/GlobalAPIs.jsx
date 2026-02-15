@@ -139,3 +139,14 @@ export const sendAcceptJobRequest = async (WORKER_ID,WORKER_NAME, JOB_ID) => {
     return null;
   }
 };
+
+export const fetchRequestsOfWorker = async (WORKER_ID) => {
+  try{
+    const response = await axios.get(`${BASE_URL}/requests/worker/${WORKER_ID}`);
+    return response.data;
+  }
+  catch(err){
+    console.error("Failed to fetch requests of worker:", err);
+    return null;
+  }
+};

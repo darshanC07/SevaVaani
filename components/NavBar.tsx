@@ -17,6 +17,7 @@ const NavBar = () => {
           <Image
             source={require("../assets/navbar/language.png")}
             style={{ width: 25, height: 25 }}
+            style={{ width: 25, height: 25 }}
           />
           <Text style={styles.lang}>EN</Text>
         </View>

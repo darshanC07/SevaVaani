@@ -25,7 +25,7 @@ const SendRequest = () => {
     name: "User",
     jobs_count: 0
   });
-  const job = jobData ? JSON.parse(jobData) : {};
+  const job = jobData ? JSON.parse(Array.isArray(jobData) ? jobData[0] : jobData) : {};
   const [toSendRequest, setToSendRequest] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
@@ -36,7 +36,7 @@ const SendRequest = () => {
     console.log("Received job data in SendRequest:", job);
   }, []);
 
-  async function getUserDetails(uid) {
+  async function getUserDetails(uid: string) {
     try {
       console.log("Fetching details for user ID:", uid);
       const clientData = await fetchClientDetails(uid);
@@ -117,7 +117,12 @@ const SendRequest = () => {
             <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
               <Text style={styles.callText}>📞 Call User</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.msgBtn}>
+            <TouchableOpacity style={styles.msgBtn} onPress={() => {
+              router.push({
+                pathname: '/worker/ChatScreen',
+                params: { clientId: job?.user_id, clientName: client?.name }
+              });
+            }}>
               <Text style={styles.msgText}>💬 Send Message</Text>
             </TouchableOpacity>
           </View>

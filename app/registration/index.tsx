@@ -70,7 +70,7 @@ const index = () => {
           </Text>
         </View>
         <View>
-          <TouchableOpacity style={styles.selectionContainer}>
+          <TouchableOpacity style={styles.selectionContainer} onPress={()=>router.push("/registration/EmailScreen")}>
             <View style={styles.imgCircle}>
               <Image
                 source={require("../../assets/roles/client.png")}
@@ -86,7 +86,7 @@ const index = () => {
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.selectionContainer} onPress={()=>router.push("registration/Profilesetup")}>
+          <TouchableOpacity style={styles.selectionContainer} onPress={()=>router.push("/registration/EmailScreen")}>
             <View style={styles.imgCircle}>
               <Image
                 source={require("../../assets/roles/worker.png")}

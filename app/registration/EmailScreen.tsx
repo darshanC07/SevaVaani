@@ -40,8 +40,14 @@ const EmailScreen = () => {
 
   async function createUser(email: string, password: string) {
     try {
+      console.log("🔄 createUser (Worker): Starting user creation...");
       setLoading(true);
 
+      console.log("📡 createUser (Worker): Making API call to:", `${config.serverURL}/register`);
+      console.log("📝 createUser (Worker): Sending data:", { email, role: "worker" });
+      
+      const startTime = Date.now();
+      
       const response = await fetch(`${config.serverURL}/register`, {
         method: "POST",
         headers: {
@@ -54,22 +60,32 @@ const EmailScreen = () => {
         }),
       });
 
+      const endTime = Date.now();
+      console.log(`⏱️ createUser (Worker): API call took ${endTime - startTime}ms`);
+
+      console.log("📥 createUser (Worker): Parsing response...");
       const data = await response.json();
+      console.log("📋 createUser (Worker): Response data:", data);
 
       if (response.ok) {
+        console.log("✅ createUser (Worker): User created successfully, UID:", data.uid);
         await AsyncStorage.setItem("uid", data.uid);
 
+        console.log("🔀 createUser (Worker): Navigating to EnterMobile...");
         router.push({
           pathname: "/registration/EnterMobile",
           params: { uid: data.uid },
         });
       } else {
+        console.log("❌ createUser (Worker): Registration failed:", data.error);
         alert(data.error || "Failed to create user");
       }
     } catch (error) {
-      console.log("Error creating user:", error);
-      alert("Something went wrong");
+      console.error("❌ createUser (Worker): Error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      alert("Something went wrong: " + errorMessage);
     } finally {
+      console.log("🏁 createUser (Worker): Setting loading to false");
       setLoading(false);
     }
   }

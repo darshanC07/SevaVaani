@@ -1,98 +1,268 @@
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
   StyleSheet,
   Text,
-  View,
-  StatusBar,
-  useWindowDimensions,
-  TouchableOpacity,
   TextInput,
-  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+  View
 } from "react-native";
-import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { createChat, getMessages, getMessagesSince, sendMessage, updateLastSeen } from "../../services/GlobalAPIs";
+import { getUserId } from "../../utils/AsyncStorageUtils";
+
+interface Message {
+  message_id: string;
+  from: string;
+  to: string;
+  msg: string;
+  timestamp: number;
+}
+
+const POLL_INTERVAL_MS = 4000;
+
+const getLatestTimestamp = (items: Message[]) =>
+  items.reduce((max, item) => (item.timestamp > max ? item.timestamp : max), 0);
+
+const mergeMessagesById = (current: Message[], incoming: Message[]) => {
+  if (incoming.length === 0) return current;
+  const map = new Map<string, Message>();
+  for (const msg of current) {
+    map.set(msg.message_id, msg);
+  }
+  for (const msg of incoming) {
+    map.set(msg.message_id, msg);
+  }
+  const merged = Array.from(map.values());
+  merged.sort((a, b) => a.timestamp - b.timestamp);
+  return merged;
+};
 
 const ChatScreen = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const listRef = useRef<FlatList<Message>>(null);
+
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [chatId, setChatId] = useState('');
+  const [clientId, setClientId] = useState(params.clientId || '');
+  const [clientName, setClientName] = useState(params.clientName || 'Client');
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastMessageTimestamp, setLastMessageTimestamp] = useState(0);
+
+  useEffect(() => {
+    initializeChat();
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        listRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!chatId || isLoading) return;
+
+    const intervalId = setInterval(() => {
+      refreshMessagesSince(chatId);
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, [chatId, isLoading, lastMessageTimestamp]);
+
+  const initializeChat = async () => {
+    try {
+      setIsLoading(true);
+      const userId = await getUserId();
+      if (!userId) {
+        router.replace('/login');
+        return;
+      }
+
+      setCurrentUserId(userId);
+
+      const actualClientId = clientId || 'mockClientId123';
+      setClientId(actualClientId);
+
+      updateLastSeen(userId).catch((error) => {
+        console.error("Update last seen error:", error);
+      });
+
+      const chatResponse = await createChat(actualClientId, userId);
+      const currentChatId = chatResponse.chat_id;
+      setChatId(currentChatId);
+
+      await loadMessages(currentChatId);
+    } catch (error) {
+      console.error('Error initializing chat:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMessages = async (currentChatId: string) => {
+    try {
+      const response = await getMessages(currentChatId);
+      const nextMessages = (response.messages || []).slice().sort((a: Message, b: Message) => a.timestamp - b.timestamp);
+      setMessages(nextMessages);
+      setLastMessageTimestamp(getLatestTimestamp(nextMessages));
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const refreshMessagesSince = async (currentChatId: string) => {
+    try {
+      const since = lastMessageTimestamp || 0;
+      const response = await getMessagesSince(currentChatId, since);
+      const incoming = response.messages || [];
+      if (incoming.length === 0) return;
+
+      setMessages((prev) => {
+        const merged = mergeMessagesById(prev, incoming);
+        setLastMessageTimestamp(getLatestTimestamp(merged));
+        return merged;
+      });
+    } catch (error) {
+      console.error('Error refreshing messages:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !currentUserId || !clientId || !chatId) return;
+
+    try {
+      const messageText = inputMessage.trim();
+      setInputMessage('');
+
+      await sendMessage(chatId, currentUserId, clientId, messageText);
+      updateLastSeen(currentUserId).catch((error) => {
+        console.error("Update last seen error:", error);
+      });
+
+      await refreshMessagesSince(chatId);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  };
+
+  const isCurrentUser = (senderId: string) => senderId === currentUserId;
+
+  const renderMessage = ({ item }: { item: Message }) => (
+    <View style={isCurrentUser(item.from) ? styles.userMessageRow : styles.leftMessageRow}>
+      {!isCurrentUser(item.from) && (
+        <View style={styles.smallAvatar}>
+          <Text style={styles.smallAvatarText}>{clientName[0] || 'C'}</Text>
+        </View>
+      )}
+      <View style={isCurrentUser(item.from) ? styles.rightBubble : styles.leftBubble}>
+        <Text style={styles.messageText}>{item.msg}</Text>
+        <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
+      </View>
+    </View>
+  );
+
+  const emptyComponent = (
+    <View style={styles.emptyState}>
+      {isLoading ? (
+        <>
+          <ActivityIndicator size="small" color="#4F63FF" />
+          <Text style={styles.emptyText}>Loading messages...</Text>
+        </>
+      ) : (
+        <Text style={styles.emptyText}>No messages yet</Text>
+      )}
+    </View>
+  );
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F2F2F2", height }}>
-      <View style={styles.header}>
-        <Ionicons name="arrow-back" size={24} color="white" />
-        <View style={styles.userInfo}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>U</Text>
-          </View>
-          <View>
-            <Text style={styles.username}>User 1</Text>
-            <View style={styles.onlineRow}>
-              <View style={styles.onlineDot} />
-              <Text style={styles.onlineText}>Online</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#EDEDED", height }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.header}>
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color="white"
+            onPress={() => router.back()}
+          />
+          <View style={styles.userInfo}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{clientName[0] || 'C'}</Text>
+            </View>
+            <View>
+              <Text style={styles.username}>{clientName}</Text>
+              <View style={styles.onlineRow}>
+                <View style={styles.onlineDot} />
+                <Text style={styles.onlineText}>Online</Text>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={styles.headerIcons}>
-          <Feather name="phone" size={22} color="white" />
-          <Feather name="more-vertical" size={22} color="white" />
-        </View>
-      </View>
-      <ScrollView contentContainerStyle={styles.chatContainer}>
-        <View style={styles.leftMessageRow}>
-          <View style={styles.smallAvatar}>
-            <Text style={styles.smallAvatarText}>U</Text>
-          </View>
-          <View style={styles.leftBubble}>
-            <Text style={styles.messageText}>
-              I need bathroom tap work done
-            </Text>
+          <View style={styles.headerIcons}>
+            <Feather name="phone" size={22} color="white" />
+            <Feather name="more-vertical" size={22} color="white" />
           </View>
         </View>
-
-        <View style={styles.rightBubble}>
-          <Text style={styles.messageText}>
-            Sure ! What is the size of the Bathroom
-          </Text>
-        </View>
-
-        <View style={styles.leftMessageRow}>
-          <View style={styles.smallAvatar}>
-            <Text style={styles.smallAvatarText}>U</Text>
-          </View>
-
-          <View style={styles.leftBubble}>
-            <Text style={styles.messageText}>
-              Around 150 square feet
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.rightBubble}>
-          <Text style={styles.messageText}>
-            I can complete it in 4-5 hours for 1,500. Does that work ?
-          </Text>
-        </View>
-
-        <View style={styles.leftMessageRow}>
-          <View style={styles.smallAvatar}>
-            <Text style={styles.smallAvatarText}>U</Text>
-          </View>
-          <View style={styles.leftBubble}>
-            <Text style={styles.messageText}>
-              Ok ! I wil send location
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      <View style={styles.inputContainer}>
-        <Feather name="paperclip" size={22} color="black" />
-        <TextInput
-          placeholder="Type a message..."
-          style={styles.input}
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item, index) => item.message_id || `${item.timestamp}-${index}`}
+          renderItem={renderMessage}
+          contentContainerStyle={[
+            styles.chatContainer,
+            messages.length === 0 ? styles.emptyContainer : null
+          ]}
+          ListEmptyComponent={emptyComponent}
+          initialNumToRender={20}
+          maxToRenderPerBatch={20}
+          windowSize={5}
+          removeClippedSubviews
         />
-        <Feather name="mic" size={22} color="black" />
-      </View>
+
+        <View style={styles.inputContainer}>
+          <Feather name="paperclip" size={22} color="black" />
+          <TextInput
+            placeholder="Type a message..."
+            placeholderTextColor="black"
+            style={styles.input}
+            value={inputMessage}
+            onChangeText={setInputMessage}
+            multiline
+            onSubmitEditing={handleSendMessage}
+          />
+          <TouchableOpacity style={styles.iconButton} onPress={handleSendMessage}>
+            <Feather name="send" size={22} color="#4F63FF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Feather name="mic" size={22} color="black" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -164,6 +334,21 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
+  emptyContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  emptyState: {
+    alignItems: "center",
+  },
+
+  emptyText: {
+    color: "#666",
+    marginTop: 8,
+  },
+
   leftMessageRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -193,16 +378,30 @@ const styles = StyleSheet.create({
   },
 
   rightBubble: {
+    backgroundColor: "#F2F4FE",
     alignSelf: "flex-end",
-    backgroundColor: "#E5E7EB",
+    maxWidth: "70%",
     padding: 12,
-    borderRadius: 14,
-    maxWidth: "75%",
-    marginBottom: 20,
+    borderRadius: 18,
+    borderBottomRightRadius: 4,
+    marginLeft: 50,
+  },
+
+  userMessageRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginBottom: 10,
   },
 
   messageText: {
     fontSize: 16,
+  },
+
+  messageTime: {
+    fontSize: 11,
+    color: "#666",
+    marginTop: 4,
+    alignSelf: "flex-end",
   },
 
   inputContainer: {
@@ -218,5 +417,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 10,
     paddingVertical: 8,
+    color: "black",
+  },
+
+  iconButton: {
+    padding: 5,
   },
 });
+

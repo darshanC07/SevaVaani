@@ -14,7 +14,8 @@ import {
 import React, { useEffect, useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
-import { BASE_URL } from "@/services/GlobalAPIs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchRequestsOfWorker } from "@/services/GlobalAPIs";
 
 const Requests = () => {
   let { height } = useWindowDimensions();
@@ -25,34 +26,40 @@ const Requests = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
-
   const fetchRequests = async () => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/worker/requests/ORyIgEqXblNggj1iW8cONvfdGb32`
-      );
+      setLoading(true);
+      const workerId = await AsyncStorage.getItem("userId");
 
-      const data = await response.json();
-
-      if (data?.requests) {
-        const formatted = data.requests.map((item: any, index: number) => ({
-          id: item.req_id || index.toString(),
-          client_name: item.client_name,
-          job_details: item.job_details,
-          location: item.location || "Location not provided",
-          description: item.req_data?.message || "",
-          price: item.req_data?.revisedPrice || "",
-          type:
-            item.req_data?.type === "revised_proposal"
-              ? "proposal"
-              : "acceptance",
-          status:
-            item.req_data?.status?.charAt(0).toUpperCase() +
-            item.req_data?.status?.slice(1),
-          full_data: item,
-        }));
-
-        setRequests(formatted);
+      if (!workerId) {
+        console.log("Worker ID not found");
+        return;
+      }
+      const response = await fetchRequestsOfWorker(workerId);
+      if (response?.requests) {
+        const formattedData = response.requests.map(
+          (item: any, index: number) => {
+            return {
+              id: item.req_id || index.toString(),
+              client_name: item.client_name,
+              job_details: item.job_details,
+              location: item.location || "Location not provided",
+              description: item.req_data?.message || "",
+              price: item.req_data?.revisedPrice || "",
+              type:
+                item.req_data?.type === "revised_proposal"
+                  ? "proposal"
+                  : "acceptance",
+              status:
+                item.req_data?.status
+                  ? item.req_data.status.charAt(0).toUpperCase() +
+                    item.req_data.status.slice(1)
+                  : "Pending",
+              full_data: item,
+            };
+          },
+        );
+        setRequests(formattedData);
       }
     } catch (error) {
       console.log("Error fetching requests:", error);
@@ -61,7 +68,6 @@ const Requests = () => {
       setRefreshing(false);
     }
   };
-
   useEffect(() => {
     fetchRequests();
   }, []);
@@ -70,17 +76,14 @@ const Requests = () => {
     setRefreshing(true);
     fetchRequests();
   }, []);
-
   const renderStatus = (status: string) => {
-    let bg = "#4F63FF";
+    let bgColor = "#4F63FF";
 
-    if (status === "Accepted") bg = "green";
-    if (status === "Open") bg = "#F4A000";
-    if (status === "Rejected") bg = "red";
-    if (status === "Pending") bg = "#4F63FF";
-
+    if (status === "Accepted") bgColor = "green";
+    if (status === "Open") bgColor = "#F4A000";
+    if (status === "Rejected") bgColor = "red";
     return (
-      <View style={[styles.statusBtn, { backgroundColor: bg }]}>
+      <View style={[styles.statusBtn, { backgroundColor: bgColor }]}>
         <Text style={styles.statusText}>{status}</Text>
       </View>
     );
@@ -98,9 +101,7 @@ const Requests = () => {
           <Text style={styles.logo}>SevaVaani</Text>
           <Ionicons name="notifications-outline" size={24} color="white" />
         </View>
-
         <Text style={styles.title}>Requests</Text>
-
         <View style={styles.searchRow}>
           <View style={styles.searchBox}>
             <Feather name="search" size={20} color="#999" />
@@ -112,7 +113,6 @@ const Requests = () => {
           </View>
         </View>
       </View>
-
       <View style={styles.legendRow}>
         <View style={styles.legendItem}>
           <View style={[styles.legendBox, { backgroundColor: "#4F86D9" }]} />
@@ -123,7 +123,6 @@ const Requests = () => {
           <Text>Revised Proposal</Text>
         </View>
       </View>
-
       {loading ? (
         <ActivityIndicator size="large" color="#4F63FF" />
       ) : (
@@ -144,18 +143,15 @@ const Requests = () => {
                   },
                 ]}
               />
-
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.jobTitle}>{item.job_details}</Text>
                   {renderStatus(item.status)}
                 </View>
-
                 <View style={styles.locationRow}>
                   <MaterialIcons name="location-on" size={18} color="#444" />
                   <Text style={styles.locationText}>{item.location}</Text>
                 </View>
-
                 {item.type === "acceptance" ? (
                   <Text style={styles.postedBy}>
                     Job Posted By : {item.client_name}
@@ -166,7 +162,6 @@ const Requests = () => {
                     <Text style={styles.price}>₹ {item.price}</Text>
                   </>
                 )}
-
                 {item.status === "Open" && (
                   <TouchableOpacity
                     style={styles.openBtn}
@@ -197,20 +192,16 @@ const Requests = () => {
               <Text style={styles.detailTitle}>
                 {selectedRequest.job_details}
               </Text>
-
               <Text style={styles.detailLabel}>Client Name</Text>
               <Text>{selectedRequest.client_name}</Text>
-
               <Text style={styles.detailLabel}>Status</Text>
               <Text>{selectedRequest.req_data?.status}</Text>
-
               {selectedRequest.req_data?.message && (
                 <>
                   <Text style={styles.detailLabel}>Message</Text>
                   <Text>{selectedRequest.req_data?.message}</Text>
                 </>
               )}
-
               {selectedRequest.req_data?.revisedPrice && (
                 <>
                   <Text style={styles.detailLabel}>Revised Price</Text>
@@ -226,7 +217,6 @@ const Requests = () => {
 };
 
 export default Requests;
-
 const styles = StyleSheet.create({
   header: {
     backgroundColor: "#4F63FF",
@@ -289,7 +279,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   statusText: { color: "white", fontWeight: "600" },
-  locationRow: { flexDirection: "row", alignItems: "center" },
+  locationRow: { flexDirection: "row", alignItems: "center", marginTop: 5 },
   locationText: { marginLeft: 5 },
   postedBy: { fontWeight: "600", marginTop: 5 },
   desc: { marginTop: 5 },

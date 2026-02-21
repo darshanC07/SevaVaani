@@ -8,6 +8,7 @@ export default function Layout() {
       <Stack.Screen name="SendRequest" options={{ headerShown: false }} />
       <Stack.Screen name="ConfirmRequest" options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" options={{ headerShown: false }} />
+      <Stack.Screen name="Requests" options={{ headerShown: false }} />
       {/* <Stack.Screen name="OTPScreen" options={{ headerShown: false }} />
       <Stack.Screen name="EmailScreen" options={{ headerShown: false }} /> */}
     </Stack>

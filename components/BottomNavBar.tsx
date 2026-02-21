@@ -17,13 +17,13 @@ const BottomNavBar = () => {
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Home</Text>
         </TouchableOpacity>
       </View>
-      <View>
+      <TouchableOpacity onPress={()=>router.push('/worker/Requests')} >
         <Image
           source={require("../assets/BottomNavBar/Business.png")}
           style={styles.icon}
         />
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Request</Text>
-      </View>
+      </TouchableOpacity>
       <TouchableOpacity 
         style={{
           position: 'relative',

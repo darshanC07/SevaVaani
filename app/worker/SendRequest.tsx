@@ -36,7 +36,7 @@ const SendRequest = () => {
   const [selectedTime, setSelectedTime] = useState("Hours");
   const [price, setPrice] = useState(0);
   const [message, setMessage] = useState("");
-  
+
   const [isSuccessModal, setSuccessModal] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
@@ -54,10 +54,10 @@ const SendRequest = () => {
     console.log("Received job data in SendRequest:", job);
   }, []);
 
-  async function getUserDetails(uid,lang) {
+  async function getUserDetails(uid, lang) {
     try {
       console.log("Fetching details for user ID:", uid);
-      const clientData = await fetchClientDetails(uid,lang);
+      const clientData = await fetchClientDetails(uid, lang);
       console.log("Client details response:", clientData);
       setClient(clientData.client);
     } catch (error) {
@@ -79,7 +79,7 @@ const SendRequest = () => {
       }
 
       const res = await sendProposal(
-        workerId,workerName, job.job_id,
+        workerId, workerName, job.job_id,
         {
           price: price,
           time_estimate: time,
@@ -89,7 +89,7 @@ const SendRequest = () => {
       if (res) {
         setSuccessMsg("Your proposal is sent successfully.");
         setSuccessModal(true);
-      }else {
+      } else {
         console.error("Failed to send proposal:", res);
         setErrorMsg("Failed to send your proposal. Please try again after sometime.");
         setShowErrorAlert(true);
@@ -101,13 +101,13 @@ const SendRequest = () => {
     // router.push("/worker/ConfirmRequest")
   }
 
-  const handleAcceptJobReq = async() => {
+  const handleAcceptJobReq = async () => {
     try {
-      const res = await sendAcceptJobRequest(workerId,workerName, job.job_id);
+      const res = await sendAcceptJobRequest(workerId, workerName, job.job_id);
       if (res) {
         setSuccessMsg("Your request to accept job is sent successfully.");
         setSuccessModal(true);
-      }else {
+      } else {
         console.error("Failed to send acceptance request:", res);
         setErrorMsg("Failed to send acceptance request. Please try again after sometime.");
         setShowErrorAlert(true);
@@ -146,7 +146,7 @@ const SendRequest = () => {
     const startFunction = async () => {
       if (job && job.user_id) {
         console.log("Job data received in SendRequest:", job);
-        getUserDetails(job.user_id,currentLanguage);
+        getUserDetails(job.user_id, currentLanguage);
         const userId = await getUserId();
         if (userId) {
           setWorkerId(userId);
@@ -191,7 +191,12 @@ const SendRequest = () => {
               <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
                 <Text style={styles.callText}>📞 Call User</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.msgBtn}>
+              <TouchableOpacity style={styles.msgBtn} onPress={() => {
+                router.push({
+                  pathname: '/worker/ChatScreen',
+                  params: { clientId: job?.user_id, clientName: client?.name }
+                });
+              }}>
                 <Text style={styles.msgText}>💬 Send Message</Text>
               </TouchableOpacity>
             </View>

@@ -9,7 +9,7 @@ const BottomNavBar = () => {
   return (
     <View style={styles.bg}>
       <View>
-        <TouchableOpacity onPress={()=>router.push('/worker')} > 
+        <TouchableOpacity onPress={()=>router.push('/worker')} style={{ alignItems: "center" }}> 
         <Image
           source={require("../assets/BottomNavBar/Home.png")}
           style={styles.icon}
@@ -17,7 +17,7 @@ const BottomNavBar = () => {
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Home</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={()=>router.push('/worker/Requests')} >
+      <TouchableOpacity onPress={()=>router.push('/worker/Requests')} style={{ alignItems: "center" }}>
         <Image
           source={require("../assets/BottomNavBar/Business.png")}
           style={styles.icon}
@@ -55,14 +55,14 @@ const BottomNavBar = () => {
           <AIChatOverlay onClose={() => setShowOverlay(false)} />
         </View>
       </Modal>
-      <View>
+      <View style={{ alignItems: "center" }}>
         <Image
           source={require("../assets/BottomNavBar/chat.png")}
           style={styles.icon}
         />
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Chat</Text>
       </View>
-      <TouchableOpacity onPress={()=>router.push('/worker/Profile' as any)} >
+      <TouchableOpacity onPress={()=>router.push('/worker/Profile')} style={{ alignItems: "center" }} >
         <Image
           source={require("../assets/BottomNavBar/user.png")}
           style={styles.icon}

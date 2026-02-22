@@ -8,8 +8,11 @@ import {
   Image,
   TextInput,
   ScrollView,
+  Animated,
+  Easing,
+  TouchableOpacity,
 } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../../components/NavBar";
@@ -32,6 +35,30 @@ const index = () => {
   const [email, setEmail] = useState<string | null>('');
 
   const [isJobDataLoading, setIsJobDataLoading] = useState(false);
+
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const toggleStatus = () => {
+    Animated.timing(slideAnim, {
+      toValue: contextObj.isOnline ? 1 : 0,
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
+
+    contextObj.setIsOnline(!contextObj.isOnline);
+  };
+
+  const iconTranslate = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 75],
+  });
+
+  const textTranslate = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -30],
+  });
 
   async function getJobs() {
     setIsJobDataLoading(true);
@@ -78,7 +105,7 @@ const index = () => {
       <View style={styles.mainContainer}>
         <View style={styles.topContainer}>
           <View style={styles.horizontalLine} />
-          <View style={styles.statusButton}>
+          {/* <View style={styles.statusButton}>
             <Text style={styles.statusText}>Online</Text>
             <View style={styles.statusIcon}>
               <Image
@@ -86,10 +113,38 @@ const index = () => {
                 style={{ width: 20, height: 20 }}
               />
             </View>
-          </View>
+          </View> */}
+          <TouchableOpacity onPress={toggleStatus} activeOpacity={0.8}>
+            <View
+              style={[
+                styles.statusButton,
+                { backgroundColor: contextObj.isOnline ? "#58EE74" : "#FF6B6B" },
+              ]}
+            >
+              <Animated.View
+                style={[
+                  styles.statusIcon,
+                  { transform: [{ translateX: iconTranslate }] },
+                ]}
+              >
+                <Image
+                  source={contextObj.isOnline?require("../../assets/tools.png"):require("../../assets/offline.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </Animated.View>
+              <Animated.Text
+                style={[
+                  styles.statusText,
+                  { transform: [{ translateX: textTranslate }] },
+                ]}
+              >
+                {contextObj.isOnline ? "Online" : "Offline"}
+              </Animated.Text>
+            </View>
+          </TouchableOpacity>
           <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
             <Text style={{ color: "white", fontSize: 15 }}>
-              Good morning {name} 
+              Good morning {name}
             </Text>
             <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>
               Find Jobs Near You
@@ -123,21 +178,21 @@ const index = () => {
           style={styles.contentContainer}
         >
           <Text style={{ fontSize: 18, fontWeight: '500' }}>Available Jobs near You</Text>
-          <ScrollView contentContainerStyle={{ marginVertical: 10,}}>
+          <ScrollView contentContainerStyle={{ marginVertical: 10, }}>
             {
               isJobDataLoading ? (
                 <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading jobs...</Text>
               ) : (
                 contextObj.jobs.length > 0 ? (
                   contextObj.jobs.map((job) => (
-                    <WorkerJobCard key={job.job_id} jobData={job}/>
+                    <WorkerJobCard key={job.job_id} jobData={job} />
                   ))
                 ) : (
                   <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}><Text style={{ textAlign: 'center', marginTop: 20 }}>No jobs found.</Text></View>
                 )
               )
             }
-            
+
             {/* <WorkerJobCard />
             <WorkerJobCard />
             <WorkerJobCard />
@@ -169,30 +224,56 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: "center",
   },
+  // statusButton: {
+  //   alignSelf: "center",
+  //   borderBlockColor: "black",
+  //   backgroundColor: "#58EE74",
+  //   borderRadius: 30,
+  //   flexDirection: "row",
+  //   paddingHorizontal: 10,
+  //   paddingVertical: 5,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   borderWidth: 1,
+  //   paddingLeft: 15,
+  // },
+  // statusText: {
+  //   color: "black",
+  //   fontWeight: "bold",
+  //   fontSize: 19,
+  //   marginRight: 5,
+  // },
+  // statusIcon: {
+  //   borderRadius: "50%",
+  //   backgroundColor: "white",
+  //   padding: 3,
+  //   borderBlockColor: "black",
+  //   width: 32,
+  //   height: 32,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   borderWidth: 1,
+  // },
   statusButton: {
     alignSelf: "center",
-    borderBlockColor: "black",
-    backgroundColor: "#58EE74",
     borderRadius: 30,
     flexDirection: "row",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    paddingLeft: 15,
   },
   statusText: {
     color: "black",
     fontWeight: "bold",
     fontSize: 19,
-    marginRight: 5,
+    marginHorizontal: 8,
   },
   statusIcon: {
-    borderRadius: "50%",
+    borderRadius: 50, // IMPORTANT (not "50%")
     backgroundColor: "white",
     padding: 3,
-    borderBlockColor: "black",
     width: 32,
     height: 32,
     justifyContent: "center",
@@ -232,7 +313,7 @@ const styles = StyleSheet.create({
     top: 40,
     paddingHorizontal: 10,
     paddingTop: 10,
-    paddingBottom :10,
+    paddingBottom: 10,
     backgroundColor: "#fff",
 
     shadowColor: "#000",

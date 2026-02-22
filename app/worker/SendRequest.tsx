@@ -11,15 +11,16 @@ import {
   Alert,
   KeyboardAvoidingView
 } from "react-native";
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { timeAgo } from "@/components/WorkerJobCard";
 import { callUser, fetchClientDetails, sendAcceptJobRequest, sendProposal } from "@/services/GlobalAPIs";
-import { getUserId, getUserName } from "@/utils/AsyncStorageUtils";
+import { getDataAvailableStatus, getOfflineData, getUserId, getUserName, setDataAvailableStatus, setOfflineData } from "@/utils/AsyncStorageUtils";
 import SuccessModal from "@/components/SuccessModal";
 import ErrorModal from "@/components/ErrorModal";
 import { useTranslation } from "react-i18next";
+import { GlobalStatesContext } from "@/contexts/GlobalContext";
 
 const SendRequest = () => {
   const { jobData } = useLocalSearchParams();
@@ -50,6 +51,8 @@ const SendRequest = () => {
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language.toUpperCase();
 
+  const contextObj = useContext(GlobalStatesContext);
+
   useEffect(() => {
     console.log("Received job data in SendRequest:", job);
   }, []);
@@ -78,22 +81,65 @@ const SendRequest = () => {
         return;
       }
 
-      const res = await sendProposal(
-        workerId, workerName, job.job_id,
-        {
-          price: price,
-          time_estimate: time,
-          time_format: selectedTime,
-          message: message
-        });
-      if (res) {
-        setSuccessMsg("Your proposal is sent successfully.");
-        setSuccessModal(true);
+      if (contextObj.isOnline) {
+        const res = await sendProposal(
+          workerId, workerName, job.job_id,
+          {
+            price: price,
+            time_estimate: time,
+            time_format: selectedTime,
+            message: message
+          });
+        if (res) {
+          setSuccessMsg("Your proposal is sent successfully.");
+          setSuccessModal(true);
+        } else {
+          console.error("Failed to send proposal:", res);
+          setErrorMsg("Failed to send your proposal. Please try again after sometime.");
+          setShowErrorAlert(true);
+        }
       } else {
-        console.error("Failed to send proposal:", res);
-        setErrorMsg("Failed to send your proposal. Please try again after sometime.");
-        setShowErrorAlert(true);
-      }
+        const earliarDataAvailableStatus = await getDataAvailableStatus();
+        await setDataAvailableStatus(true);
+        let offlineData;
+        if (earliarDataAvailableStatus) {
+          offlineData = await getOfflineData();
+          offlineData = offlineData ? JSON.parse(offlineData) : {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        } else {
+          offlineData = {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        }
+        offlineData.newProposals = 1;
+        offlineData.proposals.push({
+          workerId: workerId,
+          workerName: workerName,
+          jobId: job.job_id,
+          proposal: {
+            price: price,
+            time_estimate: time,
+            time_format: selectedTime,
+            message: message
+          }
+        })
+        await setOfflineData(JSON.stringify(offlineData));
+        setSuccessMsg("Your proposal is saved offline. It will be sent automatically when you are online.");
+        setSuccessModal(true);
+      };
     } catch (error) {
       console.error("Error sending proposal:", error);
       setShowErrorAlert(true);
@@ -103,17 +149,54 @@ const SendRequest = () => {
 
   const handleAcceptJobReq = async () => {
     try {
-      const res = await sendAcceptJobRequest(workerId, workerName, job.job_id);
-      if (res) {
-        setSuccessMsg("Your request to accept job is sent successfully.");
-        setSuccessModal(true);
+      if (contextObj.isOnline) {
+        const res = await sendAcceptJobRequest(workerId, workerName, job.job_id);
+        if (res) {
+          setSuccessMsg("Your request to accept job is sent successfully.");
+          setSuccessModal(true);
+        } else {
+          console.error("Failed to send acceptance request:", res);
+          setErrorMsg("Failed to send acceptance request. Please try again after sometime.");
+          setShowErrorAlert(true);
+        }
       } else {
-        console.error("Failed to send acceptance request:", res);
-        setErrorMsg("Failed to send acceptance request. Please try again after sometime.");
-        setShowErrorAlert(true);
-      }
+        const earliarDataAvailableStatus = await getDataAvailableStatus();
+        await setDataAvailableStatus(true);
+        let offlineData;
+        if (earliarDataAvailableStatus) {
+          offlineData = await getOfflineData();
+          offlineData = offlineData ? JSON.parse(offlineData) : {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        } else {
+          offlineData = {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        }
+        offlineData.newAcceptanceRequests = 1;
+        offlineData.acceptanceRequests.push({
+          workerId: workerId,
+          workerName: workerName,
+          jobId: job.job_id,
+        })
+        await setOfflineData(JSON.stringify(offlineData));
+        setSuccessMsg("Your request to accept job is saved offline. It will be sent automatically when you are online.");
+        setSuccessModal(true);
+      };
     } catch (error) {
-      console.error("Error sending acceptance req:", error);
+      console.error(`Error sending acceptance req for status : ${contextObj.isOnline}:`, error);
       setShowErrorAlert(true);
     }
   }

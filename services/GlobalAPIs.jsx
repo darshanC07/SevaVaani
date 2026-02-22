@@ -161,7 +161,7 @@ export const createChat = async (clientUid, workerUid) => {
     const response = await axios.post(`${BASE_URL}/chat/create`, {
       client_uid: clientUid,
       worker_uid: workerUid,
-      role : "worker",
+      role: "worker",
     });
 
     return response.data;
@@ -226,5 +226,20 @@ export const updateLastSeen = async (userUid) => {
     console.error("Update last seen error:", error);
 
     throw error;
+  }
+};
+
+export const syncData = async (WORKER_ID, DATA) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/sync_data/worker/${WORKER_ID}`,
+      {
+        data: DATA,
+      },
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to sync data:", err);
+    throw err;
   }
 };

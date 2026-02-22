@@ -11,6 +11,8 @@ import {
   Animated,
   Easing,
   TouchableOpacity,
+  Modal,
+  Pressable,
 } from "react-native";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
@@ -19,21 +21,31 @@ import NavBar from "../../components/NavBar";
 import { setStatusBarTranslucent } from "expo-status-bar";
 import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
-import { getUserId } from "../../utils/AsyncStorageUtils";
+import { getDataAvailableStatus, getOfflineData, getUserId, setDataAvailableStatus } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchAllJobs } from "@/services/GlobalAPIs";
+import { fetchAllJobs, sendAcceptJobRequest, sendProposal, syncData } from "@/services/GlobalAPIs";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
 import { useTranslation } from "react-i18next";
-
+import SuccessModal from "@/components/SuccessModal";
+import ErrorModal from "@/components/ErrorModal";
+import { LoaderKitView } from "react-native-loader-kit";
 const index = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language.toUpperCase();
   console.log("Current language:", currentLanguage);
 
+  const [showProcessingSyncData, setShowProcessingSyncData] = useState(false);
+
   const contextObj = useContext(GlobalStatesContext)
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  const [isSuccessModal, setSuccessModal] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const [user, setUser] = useState<string | null>('');
   const [name, setName] = useState<string | null>('');
@@ -101,7 +113,82 @@ const index = () => {
 
   useEffect(() => {
     getJobs(currentLanguage);
-  },[currentLanguage])
+  }, [currentLanguage])
+
+
+
+  useEffect(() => {
+    async function handleSyncingData() {
+      try {
+        if (contextObj.isOnline) {
+          setShowProcessingSyncData(true);
+          const isDataAvailable = await getDataAvailableStatus();
+          if (isDataAvailable) {
+            let syncStatus = false;
+            let offlineData = await getOfflineData();
+            offlineData = offlineData ? JSON.parse(offlineData) : null;
+            console.log("Offline data to sync:", offlineData);
+
+            try {
+              if (offlineData) {
+                if (offlineData.newAcceptanceRequests) {
+                  for (const request of offlineData.acceptanceRequests) {
+                    const response = await sendAcceptJobRequest(request.workerId, request.workerName, request.jobId);
+                    if (response) {
+                      console.log("Data synced successfully for request:", request);
+                      syncStatus = true;
+                    } else {
+                      console.error("Failed to sync data for request:", request);
+                      syncStatus = false;
+                    }
+                  }
+                }
+                else if (offlineData.newProposals) {
+                  for (const proposal of offlineData.proposals) {
+                    const response = await sendProposal(proposal.workerId, proposal.workerName, proposal.jobId, proposal.proposal);
+                    if (response) {
+                      console.log("Data synced successfully for proposal:", proposal);
+                      syncStatus = true;
+                    } else {
+                      console.error("Failed to sync data for proposal:", proposal);
+                      syncStatus = false;
+                    }
+                  }
+                }
+                // const response = await syncData(user, offlineData);
+                // if (response.code === 1) {
+                //   console.log("Data synced successfully");
+                //   await AsyncStorage.removeItem("offlineData");
+                //   await AsyncStorage.setItem("isDataAvailable", "false");
+                // } else {
+                //   console.error("Failed to sync data:", response.message);
+                // }
+              }
+            } catch (error) {
+              console.error("Error during data sync:", error);
+              syncStatus = false;
+            }
+            setShowProcessingSyncData(false);
+            if (syncStatus) {
+              await AsyncStorage.removeItem("offlineData");
+              await setDataAvailableStatus(false);
+              console.log("Offline data cleared after successful sync.");
+              setSuccessMsg("Your offline data has been successfully synced!");
+              setSuccessModal(true);
+            } else {
+              setErrorMsg("Failed to sync your offline data. It will be retried automatically when you are online again.");
+              setShowErrorAlert(true);
+            }
+          }
+        }
+      } catch (error) {
+        setShowProcessingSyncData(false);
+      } finally {
+        setShowProcessingSyncData(false);
+      }
+    }
+    handleSyncingData();
+  }, [contextObj.isOnline])
 
   return (
     <SafeAreaView
@@ -111,6 +198,31 @@ const index = () => {
         flex: 1,
       }}
     >
+      <Modal
+        transparent={true}
+        visible={showProcessingSyncData}
+        animationType="fade"
+        onRequestClose={() => { 
+          // console.log("attempt to close modal") 
+        }}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => {
+            //  console.log("attempt to close modal")
+             }}
+        >
+          <View style={styles.modalView}>
+            <Text style={{ color: 'black',fontSize : 16 }}>Looking for data to sync</Text>
+            <LoaderKitView
+              style={{ width: 50, height: 50 }}
+              name={"BallClipRotatePulse"}
+              animationSpeedMultiplier={1.0} // speed up/slow down animation, default: 1.0, larger is faster
+              color={"blue"} // Optional: color can be: 'red', 'green',... or '#ddd', '#ffffff',...
+            />
+          </View>
+        </Pressable>
+      </Modal>
       <NavBar />
       <View style={styles.mainContainer}>
         <View style={styles.topContainer}>
@@ -210,6 +322,8 @@ const index = () => {
           </ScrollView>
         </View>
       </View>
+      <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => setSuccessModal(false)} />
+      <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message={errorMsg} />
       <BottomNavBar />
     </SafeAreaView>
   );
@@ -310,6 +424,28 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Add a semi-transparent background
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 30,
+    gap:10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   contentContainer: {
     width: "94%",

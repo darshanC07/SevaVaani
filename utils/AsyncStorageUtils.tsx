@@ -21,3 +21,38 @@ export const getUserName = async (): Promise<string | null> => {
         return null;
     };
 };
+
+export const getDataAvailableStatus = async () => {
+    const status = await AsyncStorage.getItem("isDataAvailable");
+    console.log("Data available status:", status);
+    return status == null ? false : status === "true";
+}
+
+export const setDataAvailableStatus = async (status: boolean) => {
+    try {
+        await AsyncStorage.setItem("isDataAvailable", status.toString());
+        console.log("Data available status set to:", status);
+    } catch (error) {
+        console.error("Error setting data available status:", error);
+    }
+}
+
+export const getOfflineData = async () => {
+    try {
+        const offlineData = await AsyncStorage.getItem("offlineData");
+        console.log("Retrieved Offline Data from AsyncStorage:", offlineData);
+        return offlineData ?? null;
+    } catch (error) {
+        console.error("Error retrieving offline data:", error);
+        return null;
+    }
+}
+
+export const setOfflineData = async (data) => {
+    try {
+        await AsyncStorage.setItem("offlineData", data);
+        console.log("Offline data set in AsyncStorage:", data);
+    } catch (error) {
+        console.error("Error setting offline data:", error);
+    }
+}

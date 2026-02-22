@@ -19,9 +19,13 @@ import { fetchRequestsOfWorker } from "@/services/GlobalAPIs";
 import BottomNavBar from "@/components/BottomNavBar";
 import Entypo from '@expo/vector-icons/Entypo';
 import NavBar from "@/components/NavBar";
+import { useTranslation } from "react-i18next";
 const Requests = () => {
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language.toUpperCase();
 
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +35,7 @@ const Requests = () => {
 
   const [openedProposalIndex, setOpenedProposalIndex] = useState([]);
 
-  const fetchRequests = async () => {
+  const fetchRequests = async (lang) => {
     try {
       setLoading(true);
       const workerId = await AsyncStorage.getItem("userId");
@@ -40,7 +44,7 @@ const Requests = () => {
         console.log("Worker ID not found");
         return;
       }
-      const response = await fetchRequestsOfWorker(workerId);
+      const response = await fetchRequestsOfWorker(workerId, lang);
       console.log("Raw requests response:", response);
       if (response?.requests) {
         const formattedData = response.requests.map(
@@ -75,13 +79,18 @@ const Requests = () => {
     }
   };
   useEffect(() => {
-    fetchRequests();
+    fetchRequests(currentLanguage);
   }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchRequests();
+    fetchRequests(currentLanguage);
   }, []);
+
+  useEffect(() => {
+    fetchRequests(currentLanguage);
+  }, [currentLanguage])
+
   const renderStatus = (status: string) => {
     let bgColor = "#4F63FF";
 
@@ -143,10 +152,10 @@ const Requests = () => {
         <ActivityIndicator size="large" color="#4F63FF" />
       ) : (
 
-        <View style={{ flex : 1 }}>
+        <View style={{ flex: 1 }}>
           <ScrollView
             contentContainerStyle={{ paddingBottom: 90 }}
-            
+
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }

@@ -65,9 +65,9 @@ export const joinCall = async (user1, user1_name, user2, user2_name) => {
   }
 };
 
-export const fetchAllJobs = async () => {
+export const fetchAllJobs = async (lang) => {
   try {
-    const response = await axios.get(`${BASE_URL}/jobs`);
+    const response = await axios.get(`${BASE_URL}/${lang}/jobs`);
     return response.data;
   } catch (err) {
     console.error("Failed to fetch jobs:", err);
@@ -75,9 +75,9 @@ export const fetchAllJobs = async () => {
   }
 };
 
-export const fetchClientDetails = async (CLIENT_ID) => {
+export const fetchClientDetails = async (CLIENT_ID,lang) => {
   try {
-    const response = await axios.get(`${BASE_URL}/client/${CLIENT_ID}`);
+    const response = await axios.get(`${BASE_URL}/${lang}/client/${CLIENT_ID}`);
     return response.data;
   } catch (err) {
     console.error("Failed to fetch client details:", err);
@@ -140,9 +140,9 @@ export const sendAcceptJobRequest = async (WORKER_ID,WORKER_NAME, JOB_ID) => {
   }
 };
 
-export const fetchRequestsOfWorker = async (WORKER_ID) => {
+export const fetchRequestsOfWorker = async (WORKER_ID,lang) => {
   try{
-    const response = await axios.get(`${BASE_URL}/requests/worker/${WORKER_ID}`);
+    const response = await axios.get(`${BASE_URL}/${lang}/requests/worker/${WORKER_ID}`);
     return response.data;
   }
   catch(err){

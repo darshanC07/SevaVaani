@@ -19,6 +19,7 @@ import { callUser, fetchClientDetails, sendAcceptJobRequest, sendProposal } from
 import { getUserId, getUserName } from "@/utils/AsyncStorageUtils";
 import SuccessModal from "@/components/SuccessModal";
 import ErrorModal from "@/components/ErrorModal";
+import { useTranslation } from "react-i18next";
 
 const SendRequest = () => {
   const { jobData } = useLocalSearchParams();
@@ -46,14 +47,17 @@ const SendRequest = () => {
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language.toUpperCase();
+
   useEffect(() => {
     console.log("Received job data in SendRequest:", job);
   }, []);
 
-  async function getUserDetails(uid) {
+  async function getUserDetails(uid,lang) {
     try {
       console.log("Fetching details for user ID:", uid);
-      const clientData = await fetchClientDetails(uid);
+      const clientData = await fetchClientDetails(uid,lang);
       console.log("Client details response:", clientData);
       setClient(clientData.client);
     } catch (error) {
@@ -142,7 +146,7 @@ const SendRequest = () => {
     const startFunction = async () => {
       if (job && job.user_id) {
         console.log("Job data received in SendRequest:", job);
-        getUserDetails(job.user_id);
+        getUserDetails(job.user_id,currentLanguage);
         const userId = await getUserId();
         if (userId) {
           setWorkerId(userId);
@@ -154,7 +158,8 @@ const SendRequest = () => {
       }
     }
     startFunction();
-  }, []);
+  }, [currentLanguage]);
+
 
   return (
     <SafeAreaView

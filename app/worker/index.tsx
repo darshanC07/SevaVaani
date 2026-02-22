@@ -23,9 +23,14 @@ import { getUserId } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchAllJobs } from "@/services/GlobalAPIs";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
+import { useTranslation } from "react-i18next";
 
 const index = () => {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language.toUpperCase();
+  console.log("Current language:", currentLanguage);
+
   const contextObj = useContext(GlobalStatesContext)
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
@@ -60,10 +65,10 @@ const index = () => {
     outputRange: [0, -30],
   });
 
-  async function getJobs() {
+  async function getJobs(lang) {
     setIsJobDataLoading(true);
     try {
-      const data = await fetchAllJobs();
+      const data = await fetchAllJobs(lang);
       console.log("Raw job data response:", data);
       if (data.code === 1) {
         contextObj.setJobs(data.jobs);
@@ -89,10 +94,15 @@ const index = () => {
       setUser(userId);
       setName(uname);
       setEmail(uemail);
-      getJobs();
+      getJobs(currentLanguage);
     }
     fetchUserId();
   }, [])
+
+  useEffect(() => {
+    getJobs(currentLanguage);
+  },[currentLanguage])
+
   return (
     <SafeAreaView
       style={{
@@ -128,7 +138,7 @@ const index = () => {
                 ]}
               >
                 <Image
-                  source={contextObj.isOnline?require("../../assets/tools.png"):require("../../assets/offline.png")}
+                  source={contextObj.isOnline ? require("../../assets/tools.png") : require("../../assets/offline.png")}
                   style={{ width: 20, height: 20 }}
                 />
               </Animated.View>

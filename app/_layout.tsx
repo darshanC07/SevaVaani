@@ -1,6 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { Platform } from "react-native";
+import '../i18n';
 import "../tasks/LocationTask";
 import { getUserId } from "../utils/AsyncStorageUtils";
 import { GlobalStatesProvider } from "../contexts/GlobalContext";

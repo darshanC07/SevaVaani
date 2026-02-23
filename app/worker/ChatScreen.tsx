@@ -16,9 +16,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createChat, getMessages, getMessagesSince, sendMessage, updateLastSeen } from "../../services/GlobalAPIs";
-import { getUserId } from "../../utils/AsyncStorageUtils";
+import { getDataAvailableStatus, getOfflineData, getUserId, setDataAvailableStatus, setOfflineData } from "../../utils/AsyncStorageUtils";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
-
+import Octicons from '@expo/vector-icons/Octicons';
+import { fromTexture } from "@tensorflow/tfjs-react-native";
 interface Message {
   message_id: string;
   from: string;
@@ -148,7 +149,7 @@ const ChatScreen = () => {
   // };
 
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log('Messages updated:', contextObj.messages);
   }, [contextObj.messages])
 
@@ -159,7 +160,47 @@ const ChatScreen = () => {
       const messageText = inputMessage.trim();
       setInputMessage('');
 
-      await sendMessage(chatId, currentUserId, clientId, messageText);
+      if (contextObj.isOnline) {
+        await sendMessage(chatId, currentUserId, clientId, messageText);
+      } else {
+        const earliarDataAvailableStatus = await getDataAvailableStatus();
+        await setDataAvailableStatus(true);
+        let offlineData;
+        if (earliarDataAvailableStatus) {
+          offlineData = await getOfflineData();
+          offlineData = offlineData ? JSON.parse(offlineData) : {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        } else {
+          offlineData = {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        }
+        offlineData.newChats = 1;
+        const newOfflineMsg = {
+          chatId: chatId,
+          from: currentUserId,
+          to: clientId,
+          msg: messageText,
+          timestamp : Date.now(),
+          offlineMsg: true
+        };
+        offlineData.chats.push(newOfflineMsg);
+        await setOfflineData(JSON.stringify(offlineData));
+        contextObj.setMessages((prev) => [...prev, newOfflineMsg]);
+      }
       // updateLastSeen(currentUserId).catch((error) => {
       //   console.error("Update last seen error:", error);
       // });
@@ -190,7 +231,13 @@ const ChatScreen = () => {
       )}
       <View style={isCurrentUser(item.from) ? styles.rightBubble : styles.leftBubble}>
         <Text style={styles.messageText}>{item.msg}</Text>
-        <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap : 5 }}>
+          <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
+          {item?.offlineMsg && (
+            <Octicons name="issue-draft" size={12} color="black" style={{marginTop : 5}}/>
+          )}
+
+        </View>
       </View>
     </View>
   );

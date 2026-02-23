@@ -23,7 +23,7 @@ import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
 import { getDataAvailableStatus, getOfflineData, getUserId, setDataAvailableStatus } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchAllJobs, sendAcceptJobRequest, sendProposal, syncData } from "@/services/GlobalAPIs";
+import { fetchAllJobs, sendAcceptJobRequest, sendMessage, sendProposal, syncData } from "@/services/GlobalAPIs";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
 import { useTranslation } from "react-i18next";
 import SuccessModal from "@/components/SuccessModal";
@@ -119,16 +119,16 @@ const index = () => {
 
   useEffect(() => {
     async function handleSyncingData() {
+      let syncStatus = false;
       try {
         if (contextObj.isOnline) {
           setShowProcessingSyncData(true);
           const isDataAvailable = await getDataAvailableStatus();
           if (isDataAvailable) {
-            let syncStatus = false;
+            // let syncStatus = false;
             let offlineData = await getOfflineData();
             offlineData = offlineData ? JSON.parse(offlineData) : null;
             console.log("Offline data to sync:", offlineData);
-
             try {
               if (offlineData) {
                 if (offlineData.newAcceptanceRequests) {
@@ -155,6 +155,19 @@ const index = () => {
                     }
                   }
                 }
+                else if (offlineData.newChats) {
+
+                  for (const chat of offlineData.chats) {
+                    const response = await sendMessage(chat.chatId, chat.from, chat.to, chat.msg);
+                    if (response) {
+                      console.log("Data synced successfully for chat:", chat);
+                      syncStatus = true;
+                    } else {
+                      console.error("Failed to sync data for chat:", chat);
+                      syncStatus = false;
+                    }
+                  }
+                }
                 // const response = await syncData(user, offlineData);
                 // if (response.code === 1) {
                 //   console.log("Data synced successfully");
@@ -169,22 +182,23 @@ const index = () => {
               syncStatus = false;
             }
             setShowProcessingSyncData(false);
-            if (syncStatus) {
-              await AsyncStorage.removeItem("offlineData");
-              await setDataAvailableStatus(false);
-              console.log("Offline data cleared after successful sync.");
-              setSuccessMsg("Your offline data has been successfully synced!");
-              setSuccessModal(true);
-            } else {
-              setErrorMsg("Failed to sync your offline data. It will be retried automatically when you are online again.");
-              setShowErrorAlert(true);
-            }
+
           }
         }
       } catch (error) {
         setShowProcessingSyncData(false);
       } finally {
         setShowProcessingSyncData(false);
+        if (syncStatus) {
+          await AsyncStorage.removeItem("offlineData");
+          await setDataAvailableStatus(false);
+          console.log("Offline data cleared after successful sync.");
+          setSuccessMsg("Your offline data has been successfully synced!");
+          setSuccessModal(true);
+        } else {
+          setErrorMsg("Failed to sync your offline data. It will be retried automatically when you are online again.");
+          setShowErrorAlert(true);
+        }
       }
     }
     handleSyncingData();
@@ -202,7 +216,7 @@ const index = () => {
         transparent={true}
         visible={showProcessingSyncData}
         animationType="fade"
-        onRequestClose={() => { 
+        onRequestClose={() => {
           // console.log("attempt to close modal") 
         }}
       >
@@ -210,10 +224,10 @@ const index = () => {
           style={styles.modalOverlay}
           onPress={() => {
             //  console.log("attempt to close modal")
-             }}
+          }}
         >
           <View style={styles.modalView}>
-            <Text style={{ color: 'black',fontSize : 16 }}>Looking for data to sync</Text>
+            <Text style={{ color: 'black', fontSize: 16 }}>Looking for data to sync</Text>
             <LoaderKitView
               style={{ width: 50, height: 50 }}
               name={"BallClipRotatePulse"}
@@ -436,7 +450,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 30,
-    gap:10,
+    gap: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {

@@ -6,15 +6,18 @@ export const GlobalStatesContext = createContext({
   jobs : [],
   setJobs : ()=>{},
   isOnline : true,
-  setIsOnline : (status)=>{}
+  setIsOnline : (status)=>{},
+  isIemodelLoaded : false,
+  setIeModel : ()=>{}
 });
 
 export const GlobalStatesProvider = ({ children }) => {
   const [messages,setMessages] = useState([])
   const [jobs,setJobs] = useState([])
   const [isOnline, setIsOnline] = useState(true);
+  const [isIemodelLoaded,setIeModel] = useState(false)
     return (
-        <GlobalStatesContext.Provider value={{ messages, setMessages,jobs,setJobs,isOnline,setIsOnline }}>
+        <GlobalStatesContext.Provider value={{ messages, setMessages,jobs,setJobs,isOnline,setIsOnline,isIemodelLoaded,setIeModel }}>
             {children}
         </GlobalStatesContext.Provider>
     );

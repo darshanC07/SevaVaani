@@ -7,13 +7,22 @@ import { getUserId } from "../utils/AsyncStorageUtils";
 import { useRouter } from "expo-router";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "react-native";
+import { initExtractorModel, loadVocab } from "@/utils/Extractor";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
+import { initModel } from "@/utils/ClassifierService";
 
 export default function Index() {
   const router = useRouter();
   const [user, setUser] = useState<string | null>(null);
   const contextObj = useContext(GlobalStatesContext);
   const esRef = useRef<EventSource>(null);
+
+  async function loadIEModel() {
+    await initModel();  //loading the intent classifier model
+    await loadVocab();
+    await initExtractorModel();
+    contextObj.setIeModel(true);
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -105,7 +114,7 @@ export default function Index() {
 
     startBackgroundLocation();
     initSSE();
-
+    loadIEModel()
     // return () => {
     //   isMounted = false;
     //   if (esRef.current) {

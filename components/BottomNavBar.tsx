@@ -1,43 +1,87 @@
-import { Image, StyleSheet, Text, View, TouchableOpacity, Modal, Platform } from "react-native";
-import React, { useState } from "react";
+import { Image, StyleSheet, Text, View, TouchableOpacity, Modal, Platform, NativeModules, Alert } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import AIChatOverlay from "./AIChatOverlay";
+import { GlobalStatesContext } from "@/contexts/GlobalContext";
+import LongPressMessageWindow from "./LongPressMessageWindow";
 
 const BottomNavBar = () => {
   const router = useRouter();
   const [showOverlay, setShowOverlay] = useState(false);
+
+  const contextObj = useContext(GlobalStatesContext);
+  const [isLongPressed, setIsLongPressed] = useState(false);
+  const [intent, setIntent] = useState("");
+  const [intentConfidence, setIntentConfidence] = useState(0);
+  const handleLongPress = async () => {
+    if (!contextObj.isIemodelLoaded) {
+      Alert.alert("Processing", "The assistant is still loading. Please wait a moment and try again.");
+      return;
+    }
+    setIsLongPressed(true);
+  }
+
+  const handleIntent = async () => {
+   if (intent === "view_profile") {
+      router.push('/worker/Profile');
+    } 
+  }
+
+  useEffect(() => {
+    if (intent.length != 0 && intentConfidence > 0.1) {
+      handleIntent();
+    }
+  }, [intent, intentConfidence])
+
+
+
   return (
     <View style={styles.bg}>
       <View>
-        <TouchableOpacity onPress={()=>router.push('/worker')} style={{ alignItems: "center" }}> 
-        <Image
-          source={require("../assets/BottomNavBar/Home.png")}
-          style={styles.icon}
-        />
-        <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Home</Text>
+        <TouchableOpacity onPress={() => router.push('/worker')} style={{ alignItems: "center" }}>
+          <Image
+            source={require("../assets/BottomNavBar/Home.png")}
+            style={styles.icon}
+          />
+          <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Home</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={()=>router.push('/worker/Requests')} style={{ alignItems: "center" }}>
+      <TouchableOpacity onPress={() => router.push('/worker/Requests')} style={{ alignItems: "center" }}>
         <Image
           source={require("../assets/BottomNavBar/Business.png")}
           style={styles.icon}
         />
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Request</Text>
       </TouchableOpacity>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={{
           position: 'relative',
           bottom: 20,
           backgroundColor: "#4560F4",
           borderRadius: 35,
-          borderColor: 'white', 
+          borderColor: 'white',
           borderWidth: 1,
           width: 70,
           height: 70,
           justifyContent: 'center',
           alignItems: 'center'
         }}
-        onPress={() => setShowOverlay(true)}
+        onPress={() => {
+          if (!contextObj.isIemodelLoaded) {
+            Alert.alert("Processing", "The assistant is still loading. Please wait a moment and try again.");
+            return;
+          } else {
+            setShowOverlay(true)
+          }
+        }
+        }
+        onLongPress={handleLongPress}
+        onPressOut={() => {
+          if (isLongPressed) {
+            setIsLongPressed(false);
+          }
+        }}
+
       >
         <Image
           source={require("../assets/BottomNavBar/Microphone.png")}
@@ -62,13 +106,13 @@ const BottomNavBar = () => {
         />
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Chat</Text>
       </View>
-      <TouchableOpacity onPress={()=>router.push('/worker/Profile')} style={{ alignItems: "center" }} >
+      <TouchableOpacity onPress={() => router.push('/worker/Profile')} style={{ alignItems: "center" }} >
         <Image
           source={require("../assets/BottomNavBar/user.png")}
           style={styles.icon}
         /><Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Profile</Text>
-        </TouchableOpacity>
-      
+      </TouchableOpacity>
+      {isLongPressed && <LongPressMessageWindow intentSetter={setIntent} confidenceSetter={setIntentConfidence} />}
     </View>
   );
 };

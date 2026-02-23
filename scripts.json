@@ -1,10 +1,10 @@
 {
-    "job_post" : [
-        "Please provide me with the details of the job you want to post. What type of work is it ? Plumbing, Electrical, Cleaning?", 
-        "Okay, Can you please provide me with a brief description of the job?",
-        "Got it. Please provide me with the location details.",
-        "Whats your budget range for this job? This will help us find the right workers for you.",
-        "What will be duration of this task? ",
-        "Do you have any specific requirements or preferences for the workers?"
+    "profile_setup" : [
+       "May I know your full name, please?",
+       "Which language do you prefer to communicate in?",
+       "Could you please share your current address?",
+       "What type of work are you looking for — full-time, part-time, daily, or seasonal?",
+       "What kind of work do you specialize in? (For example: plumber, electrician, cleaner)",
+       "How many years of experience do you have in this field?"
     ]
 }

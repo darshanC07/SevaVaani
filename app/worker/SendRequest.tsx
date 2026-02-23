@@ -9,13 +9,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView
 } from "react-native";
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { timeAgo } from "@/components/WorkerJobCard";
-import { callUser, fetchClientDetails } from "@/services/GlobalAPIs";
-import { getUserId, getUserName } from "@/utils/AsyncStorageUtils";
+import { callUser, fetchClientDetails, sendAcceptJobRequest, sendProposal } from "@/services/GlobalAPIs";
+import { getDataAvailableStatus, getOfflineData, getUserId, getUserName, setDataAvailableStatus, setOfflineData } from "@/utils/AsyncStorageUtils";
+import SuccessModal from "@/components/SuccessModal";
+import ErrorModal from "@/components/ErrorModal";
+import { useTranslation } from "react-i18next";
+import { GlobalStatesContext } from "@/contexts/GlobalContext";
 
 const SendRequest = () => {
   const { jobData } = useLocalSearchParams();
@@ -28,24 +33,174 @@ const SendRequest = () => {
   const job = jobData ? JSON.parse(jobData) : {};
   const [toSendRequest, setToSendRequest] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [time, setTime] = useState(0);
+  const [selectedTime, setSelectedTime] = useState("Hours");
+  const [price, setPrice] = useState(0);
+  const [message, setMessage] = useState("");
+
+  const [isSuccessModal, setSuccessModal] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
   const router = useRouter();
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language.toUpperCase();
+
+  const contextObj = useContext(GlobalStatesContext);
 
   useEffect(() => {
     console.log("Received job data in SendRequest:", job);
   }, []);
 
-  async function getUserDetails(uid) {
+  async function getUserDetails(uid, lang) {
     try {
       console.log("Fetching details for user ID:", uid);
-      const clientData = await fetchClientDetails(uid);
+      const clientData = await fetchClientDetails(uid, lang);
       console.log("Client details response:", clientData);
       setClient(clientData.client);
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
   }
+
+
+  const handleSendProposal = async () => {
+    try {
+      if (price === 0 || time === 0) {
+        Alert.alert("Invalid input", "Please enter a valid price and time estimate for your proposal.", [
+          {
+            text: 'OK',
+            onPress: () => console.log('OK Pressed'),
+          },
+        ]);
+        return;
+      }
+
+      if (contextObj.isOnline) {
+        const res = await sendProposal(
+          workerId, workerName, job.job_id,
+          {
+            price: price,
+            time_estimate: time,
+            time_format: selectedTime,
+            message: message
+          });
+        if (res) {
+          setSuccessMsg("Your proposal is sent successfully.");
+          setSuccessModal(true);
+        } else {
+          console.error("Failed to send proposal:", res);
+          setErrorMsg("Failed to send your proposal. Please try again after sometime.");
+          setShowErrorAlert(true);
+        }
+      } else {
+        const earliarDataAvailableStatus = await getDataAvailableStatus();
+        await setDataAvailableStatus(true);
+        let offlineData;
+        if (earliarDataAvailableStatus) {
+          offlineData = await getOfflineData();
+          offlineData = offlineData ? JSON.parse(offlineData) : {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        } else {
+          offlineData = {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        }
+        offlineData.newProposals = 1;
+        offlineData.proposals.push({
+          workerId: workerId,
+          workerName: workerName,
+          jobId: job.job_id,
+          proposal: {
+            price: price,
+            time_estimate: time,
+            time_format: selectedTime,
+            message: message
+          }
+        })
+        await setOfflineData(JSON.stringify(offlineData));
+        setSuccessMsg("Your proposal is saved offline. It will be sent automatically when you are online.");
+        setSuccessModal(true);
+      };
+    } catch (error) {
+      console.error("Error sending proposal:", error);
+      setShowErrorAlert(true);
+    }
+    // router.push("/worker/ConfirmRequest")
+  }
+
+  const handleAcceptJobReq = async () => {
+    try {
+      if (contextObj.isOnline) {
+        const res = await sendAcceptJobRequest(workerId, workerName, job.job_id);
+        if (res) {
+          setSuccessMsg("Your request to accept job is sent successfully.");
+          setSuccessModal(true);
+        } else {
+          console.error("Failed to send acceptance request:", res);
+          setErrorMsg("Failed to send acceptance request. Please try again after sometime.");
+          setShowErrorAlert(true);
+        }
+      } else {
+        const earliarDataAvailableStatus = await getDataAvailableStatus();
+        await setDataAvailableStatus(true);
+        let offlineData;
+        if (earliarDataAvailableStatus) {
+          offlineData = await getOfflineData();
+          offlineData = offlineData ? JSON.parse(offlineData) : {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        } else {
+          offlineData = {
+            newProfileData: 0,
+            newAcceptanceRequests: 0,
+            newProposals: 0,
+            newChats: 0,
+            acceptanceRequests: [],
+            proposals: [],
+            chats: []
+          };
+        }
+        offlineData.newAcceptanceRequests = 1;
+        offlineData.acceptanceRequests.push({
+          workerId: workerId,
+          workerName: workerName,
+          jobId: job.job_id,
+        })
+        await setOfflineData(JSON.stringify(offlineData));
+        setSuccessMsg("Your request to accept job is saved offline. It will be sent automatically when you are online.");
+        setSuccessModal(true);
+      };
+    } catch (error) {
+      console.error(`Error sending acceptance req for status : ${contextObj.isOnline}:`, error);
+      setShowErrorAlert(true);
+    }
+  }
+
 
   const handleCall = async () => {
     const clientId = job?.user_id;
@@ -74,7 +229,7 @@ const SendRequest = () => {
     const startFunction = async () => {
       if (job && job.user_id) {
         console.log("Job data received in SendRequest:", job);
-        getUserDetails(job.user_id);
+        getUserDetails(job.user_id, currentLanguage);
         const userId = await getUserId();
         if (userId) {
           setWorkerId(userId);
@@ -86,7 +241,8 @@ const SendRequest = () => {
       }
     }
     startFunction();
-  }, []);
+  }, [currentLanguage]);
+
 
   return (
     <SafeAreaView
@@ -96,133 +252,147 @@ const SendRequest = () => {
         flex: 1,
       }}
     >
-      <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-        <Text style={styles.title}>Send Job request</Text>
-        <View style={styles.employerCard}>
-          <Text style={styles.sectionHeading}>Employer Information</Text>
-          <View style={styles.employerRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{client?.name[0]}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{client?.name}</Text>
-              {client?.jobs_count === 0 ? <Text style={styles.jobs}>No Jobs Posted</Text> : <Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
-            </View>
-            <View style={styles.ratingBox}>
-              <Text style={styles.star}>★</Text>
-              <Text style={styles.rating}>4.3</Text>
-            </View>
-          </View>
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
-              <Text style={styles.callText}>📞 Call User</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.msgBtn}>
-              <Text style={styles.msgText}>💬 Send Message</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.card}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: 'space-between', marginBottom: 10, }}>
-            <Text style={styles.cardTitle}>Job Details</Text>
-            <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
-          </View>
-
-          {[
-            ["Service", job.service_type],
-            ["Job", job.job_details],
-            ["Description", job.description],
-            ["Duration", job.duration],
-            ["Location", job.location],
-            ["Budget Range", "₹" + job.budget_min + "-₹" + job.budget_max],
-          ].map(([label, value]) => (
-            <View key={label} style={styles.row}>
-              <Text style={styles.label}>{label}</Text>
-              {label === "Description" ? <Text style={{
-                fontSize: 15,
-                fontWeight: "500",
-                width: 200,
-                textAlign: 'right'
-              }}>{value}</Text> : <Text style={styles.value}>{value}</Text>}
-            </View>
-          ))}
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Client Message</Text>
-          <View style={styles.messageBox}>
-            <Text>Need urgent plumbing work for bathroom leak</Text>
-          </View>
-          <View style={styles.voiceBox}>
-            <Text>
-              Voice message available{"\n"}
-              Tap to listen to client’s description
-            </Text>
-            <View style={styles.playBtn}>
-              <Text style={{ color: "white", fontWeight: "bold" }}>▶</Text>
-            </View>
-          </View>
-        </View>
-        {
-          !toSendRequest && (
-            <View style={styles.footer}>
-              <TouchableOpacity style={styles.acceptBtn}
-                onPress={() => router.push("/worker/ConfirmRequest")}>
-                <Text style={styles.acceptText}>Accept</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.sendBtn}
-                // onPress={() => router.push("/worker/ConfirmRequest")}
-                onPress={() => {
-                  scrollViewRef.current?.scrollToEnd({ animated: true });
-                  setToSendRequest(true);
-                }}
-              >
-                <Text style={styles.sendText}>Send Request</Text>
-              </TouchableOpacity>
-            </View>
-          )
-        }
-
-        {
-          toSendRequest && (
-            <View style={styles.card}>
-              <Text style={[styles.cardTitle, { marginBottom: 10, textAlign: 'center' }]}>Your Proposal</Text>
-
-              <View style={styles.horizontalLine} />
-              <View style={styles.inputRow}>
-                <Text style={styles.inputLabel}>Enter Your Price</Text>
-                <View style={styles.inputBox}>
-                  <Text>₹300</Text>
-                </View>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
+          <Text style={styles.title}>Send Job request</Text>
+          <View style={styles.employerCard}>
+            <Text style={styles.sectionHeading}>Employer Information</Text>
+            <View style={styles.employerRow}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{client?.name[0]}</Text>
               </View>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputLabel}>Estimated Time</Text>
-                <View style={styles.inputBoxRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{client?.name}</Text>
+                {client?.jobs_count === 0 ? <Text style={styles.jobs}>No Jobs Posted</Text> : <Text style={styles.jobs}>• {client?.jobs_count} Jobs Posted</Text>}
+              </View>
+              <View style={styles.ratingBox}>
+                <Text style={styles.star}>★</Text>
+                <Text style={styles.rating}>4.3</Text>
+              </View>
+            </View>
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
+                <Text style={styles.callText}>📞 Call User</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.msgBtn} onPress={() => {
+                router.push({
+                  pathname: '/worker/ChatScreen',
+                  params: { clientId: job?.user_id, clientName: client?.name }
+                });
+              }}>
+                <Text style={styles.msgText}>💬 Send Message</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.card}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: 'space-between', marginBottom: 10, }}>
+              <Text style={styles.cardTitle}>Job Details</Text>
+              <Text style={styles.posted}>Posted {timeAgo(job.posted_at)}</Text>
+            </View>
+
+            {[
+              ["Service", job.service_type],
+              ["Job", job.job_details],
+              ["Description", job.description],
+              ["Duration", job.duration],
+              ["Location", job.location],
+              ["Budget Range", "₹" + job.budget_min + "-₹" + job.budget_max],
+            ].map(([label, value]) => (
+              <View key={label} style={styles.row}>
+                <Text style={styles.label}>{label}</Text>
+                {label === "Description" ? <Text style={{
+                  fontSize: 15,
+                  fontWeight: "500",
+                  width: 200,
+                  textAlign: 'right'
+                }}>{value}</Text> : <Text style={styles.value}>{value}</Text>}
+              </View>
+            ))}
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Client Message</Text>
+            <View style={styles.messageBox}>
+              <Text>Need urgent plumbing work for bathroom leak</Text>
+            </View>
+            <View style={styles.voiceBox}>
+              <Text>
+                Voice message available{"\n"}
+                Tap to listen to client’s description
+              </Text>
+              <View style={styles.playBtn}>
+                <Text style={{ color: "white", fontWeight: "bold" }}>▶</Text>
+              </View>
+            </View>
+          </View>
+          {
+            !toSendRequest && (
+              <View style={styles.footer}>
+                <TouchableOpacity style={styles.acceptBtn}
+                  onPress={handleAcceptJobReq}>
+                  <Text style={styles.acceptText}>Accept</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.sendBtn}
+                  // onPress={() => router.push("/worker/ConfirmRequest")}
+                  onPress={() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                    setToSendRequest(true);
+                  }}
+                >
+                  <Text style={styles.sendText}>Send Request</Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }
+
+          {
+            toSendRequest && (
+              <View style={styles.card}>
+                <Text style={[styles.cardTitle, { marginBottom: 10, textAlign: 'center' }]}>Your Proposal</Text>
+
+                <View style={styles.horizontalLine} />
+                <View style={styles.inputRow}>
+                  <Text style={styles.inputLabel}>Enter Your Price</Text>
+                  <TextInput style={styles.textInput} keyboardType="number-pad" value={price ? price.toString() : ''} onChangeText={(e) => setPrice(parseInt(e) || 0)} />
+                </View>
+                <View style={styles.inputRow}>
+                  <Text style={styles.inputLabel}>Estimated Time</Text>
+                  {/* <View style={styles.inputBoxRow}>
                   <Text>1</Text>
                   <Text style={{ marginLeft: 6 }}>h</Text>
+                </View> */}
+                  <View style={{ flexDirection: 'row', gap: 5 }}>
+                    <TextInput style={[styles.textInput, {
+                      width: '72%'
+                    }]}
+                      value={time ? time.toString() + " " + selectedTime : ''}
+                      onChangeText={(e) => setTime(parseInt(e) || 0)}
+                      keyboardType="number-pad" />
+                    <TouchableOpacity style={{ width: 40, borderWidth: 1, borderRadius: 5, justifyContent: 'center', alignItems: 'center' }} onPress={() => setSelectedTime("Days")}><Text>Day</Text></TouchableOpacity>
+                    <TouchableOpacity style={{ width: 40, borderWidth: 1, borderRadius: 5, justifyContent: 'center', alignItems: 'center' }} onPress={() => setSelectedTime("Hours")}><Text>Hrs</Text></TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputLabel}>Message (optional)</Text>
-                <TextInput style={styles.textInput} />
-              </View>
-              <TouchableOpacity
-                style={styles.sendBtn}
-                onPress={() => router.push("/worker/ConfirmRequest")}
+                <View style={styles.inputRow}>
+                  <Text style={styles.inputLabel}>Message (optional)</Text>
+                  <TextInput style={styles.textInput} value={message} onChangeText={setMessage} />
+                </View>
+                <TouchableOpacity
+                  style={styles.sendBtn}
+                  onPress={handleSendProposal}
                 // onPress={() => {
                 //   scrollViewRef.current?.scrollToEnd({ animated: true });
                 //   setToSendRequest(true);
                 // }}
-              >
-                <Text style={styles.sendText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          )
-        }
+                >
+                  <Text style={styles.sendText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }
 
 
-        {/* <View style={styles.footer}>
+          {/* <View style={styles.footer}>
           <TouchableOpacity style={styles.acceptBtn} onPress={() => router.back()}>
             <Text style={styles.acceptText}>Go back</Text>
           </TouchableOpacity>
@@ -234,8 +404,12 @@ const SendRequest = () => {
             <Text style={styles.sendText}>Send Request</Text>
           </TouchableOpacity>
         </View> */}
-        <View style={{ height: 40 }} />
-      </ScrollView>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+        <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => setSuccessModal(false)} />
+        <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message={errorMsg} />
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -436,6 +610,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 10,
+    color: "black",
   },
 
   footer: {

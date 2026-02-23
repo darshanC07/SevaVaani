@@ -8,24 +8,45 @@ import {
   Image,
   TextInput,
   ScrollView,
+  Animated,
+  Easing,
+  TouchableOpacity,
+  Modal,
+  Pressable,
 } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../../components/NavBar";
 import { setStatusBarTranslucent } from "expo-status-bar";
 import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
-import { getUserId } from "../../utils/AsyncStorageUtils";
+import { getDataAvailableStatus, getOfflineData, getUserId, setDataAvailableStatus } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchAllJobs } from "@/services/GlobalAPIs";
+import { fetchAllJobs, sendAcceptJobRequest, sendMessage, sendProposal, syncData } from "@/services/GlobalAPIs";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
-
+import { useTranslation } from "react-i18next";
+import SuccessModal from "@/components/SuccessModal";
+import ErrorModal from "@/components/ErrorModal";
+import { LoaderKitView } from "react-native-loader-kit";
 const index = () => {
+  console.log("HOME SCREEN RENDERED");
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language.toUpperCase();
+  console.log("Current language:", currentLanguage);
+
+  const [showProcessingSyncData, setShowProcessingSyncData] = useState(false);
+
   const contextObj = useContext(GlobalStatesContext)
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  const [isSuccessModal, setSuccessModal] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const [user, setUser] = useState<string | null>('');
   const [name, setName] = useState<string | null>('');
@@ -33,10 +54,36 @@ const index = () => {
 
   const [isJobDataLoading, setIsJobDataLoading] = useState(false);
 
-  async function getJobs() {
+  const prevOnlineStatus = useRef(false);
+  const isSyncingRef = useRef(false);
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const toggleStatus = () => {
+    Animated.timing(slideAnim, {
+      toValue: contextObj.isOnline ? 1 : 0,
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
+
+    contextObj.setIsOnline(!contextObj.isOnline);
+  };
+
+  const iconTranslate = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 75],
+  });
+
+  const textTranslate = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -30],
+  });
+
+  async function getJobs(lang) {
     setIsJobDataLoading(true);
     try {
-      const data = await fetchAllJobs();
+      const data = await fetchAllJobs(lang);
       console.log("Raw job data response:", data);
       if (data.code === 1) {
         contextObj.setJobs(data.jobs);
@@ -62,10 +109,102 @@ const index = () => {
       setUser(userId);
       setName(uname);
       setEmail(uemail);
-      getJobs();
+      // getJobs(currentLanguage);
     }
     fetchUserId();
   }, [])
+
+  useEffect(() => {
+    getJobs(currentLanguage);
+  }, [currentLanguage])
+
+
+
+  useEffect(() => {
+    if (!contextObj.isOnline) return;
+    // if (hasSyncedRef.current) return;
+
+    // hasSyncedRef.current = true;
+
+    async function handleSyncingData() {
+      setShowProcessingSyncData(true);
+      isSyncingRef.current = false;
+      prevOnlineStatus.current = false;
+      try {
+        const isDataAvailable = await getDataAvailableStatus();
+        if (!isDataAvailable) return;
+
+        let offlineData = await getOfflineData();
+        offlineData = offlineData ? JSON.parse(offlineData) : null;
+
+        if (!offlineData) return;
+
+        let allSuccess = true;
+
+        if (offlineData.newAcceptanceRequests) {
+          for (const request of offlineData.acceptanceRequests) {
+            const response = await sendAcceptJobRequest(
+              request.workerId,
+              request.workerName,
+              request.jobId
+            );
+            if (!response) allSuccess = false;
+          }
+        }
+
+        if (offlineData.newProposals) {
+          for (const proposal of offlineData.proposals) {
+            const response = await sendProposal(
+              proposal.workerId,
+              proposal.workerName,
+              proposal.jobId,
+              proposal.proposal
+            );
+            if (!response) allSuccess = false;
+          }
+        }
+
+        if (offlineData.newChats) {
+          for (const chat of offlineData.chats) {
+            const response = await sendMessage(
+              chat.chatId,
+              chat.from,
+              chat.to,
+              chat.msg
+            );
+            if (!response) allSuccess = false;
+          }
+        }
+
+        if (allSuccess) {
+          await AsyncStorage.removeItem("offlineData");
+          await setDataAvailableStatus(false);
+          setSuccessMsg("Your offline data has been successfully synced!");
+          setSuccessModal(true);
+        } else {
+          setErrorMsg("Failed to sync your offline data.");
+          setShowErrorAlert(true);
+        }
+
+      } catch (error) {
+        setErrorMsg("Unexpected error during sync.");
+        setShowErrorAlert(true);
+      } finally {
+        setShowProcessingSyncData(false);
+      }
+    }
+    if (!prevOnlineStatus.current && contextObj.isOnline) {
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
+      handleSyncingData().finally(() => {
+        isSyncingRef.current = false;
+        prevOnlineStatus.current = false
+      });
+    }
+
+    prevOnlineStatus.current = contextObj.isOnline;
+  }, [contextObj.isOnline])
+
   return (
     <SafeAreaView
       style={{
@@ -74,11 +213,36 @@ const index = () => {
         flex: 1,
       }}
     >
+      <Modal
+        transparent={true}
+        visible={showProcessingSyncData}
+        animationType="fade"
+        onRequestClose={() => {
+          // console.log("attempt to close modal") 
+        }}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => {
+            //  console.log("attempt to close modal")
+          }}
+        >
+          <View style={styles.modalView}>
+            <Text style={{ color: 'black', fontSize: 16 }}>Looking for data to sync</Text>
+            <LoaderKitView
+              style={{ width: 50, height: 50 }}
+              name={"BallClipRotatePulse"}
+              animationSpeedMultiplier={1.0} // speed up/slow down animation, default: 1.0, larger is faster
+              color={"blue"} // Optional: color can be: 'red', 'green',... or '#ddd', '#ffffff',...
+            />
+          </View>
+        </Pressable>
+      </Modal>
       <NavBar />
       <View style={styles.mainContainer}>
         <View style={styles.topContainer}>
           <View style={styles.horizontalLine} />
-          <View style={styles.statusButton}>
+          {/* <View style={styles.statusButton}>
             <Text style={styles.statusText}>Online</Text>
             <View style={styles.statusIcon}>
               <Image
@@ -86,10 +250,38 @@ const index = () => {
                 style={{ width: 20, height: 20 }}
               />
             </View>
-          </View>
+          </View> */}
+          <TouchableOpacity onPress={toggleStatus} activeOpacity={0.8}>
+            <View
+              style={[
+                styles.statusButton,
+                { backgroundColor: contextObj.isOnline ? "#58EE74" : "#FF6B6B" },
+              ]}
+            >
+              <Animated.View
+                style={[
+                  styles.statusIcon,
+                  { transform: [{ translateX: iconTranslate }] },
+                ]}
+              >
+                <Image
+                  source={contextObj.isOnline ? require("../../assets/tools.png") : require("../../assets/offline.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </Animated.View>
+              <Animated.Text
+                style={[
+                  styles.statusText,
+                  { transform: [{ translateX: textTranslate }] },
+                ]}
+              >
+                {contextObj.isOnline ? "Online" : "Offline"}
+              </Animated.Text>
+            </View>
+          </TouchableOpacity>
           <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
             <Text style={{ color: "white", fontSize: 15 }}>
-              Good morning {name} 
+              Good morning {name}
             </Text>
             <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>
               Find Jobs Near You
@@ -123,21 +315,21 @@ const index = () => {
           style={styles.contentContainer}
         >
           <Text style={{ fontSize: 18, fontWeight: '500' }}>Available Jobs near You</Text>
-          <ScrollView contentContainerStyle={{ marginVertical: 10,}}>
+          <ScrollView contentContainerStyle={{ marginVertical: 10, }}>
             {
               isJobDataLoading ? (
                 <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading jobs...</Text>
               ) : (
                 contextObj.jobs.length > 0 ? (
                   contextObj.jobs.map((job) => (
-                    <WorkerJobCard key={job.job_id} jobData={job}/>
+                    <WorkerJobCard key={job.job_id} jobData={job} />
                   ))
                 ) : (
                   <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}><Text style={{ textAlign: 'center', marginTop: 20 }}>No jobs found.</Text></View>
                 )
               )
             }
-            
+
             {/* <WorkerJobCard />
             <WorkerJobCard />
             <WorkerJobCard />
@@ -145,6 +337,8 @@ const index = () => {
           </ScrollView>
         </View>
       </View>
+      <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => setSuccessModal(false)} />
+      <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message={errorMsg} />
       <BottomNavBar />
     </SafeAreaView>
   );
@@ -169,30 +363,56 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: "center",
   },
+  // statusButton: {
+  //   alignSelf: "center",
+  //   borderBlockColor: "black",
+  //   backgroundColor: "#58EE74",
+  //   borderRadius: 30,
+  //   flexDirection: "row",
+  //   paddingHorizontal: 10,
+  //   paddingVertical: 5,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   borderWidth: 1,
+  //   paddingLeft: 15,
+  // },
+  // statusText: {
+  //   color: "black",
+  //   fontWeight: "bold",
+  //   fontSize: 19,
+  //   marginRight: 5,
+  // },
+  // statusIcon: {
+  //   borderRadius: "50%",
+  //   backgroundColor: "white",
+  //   padding: 3,
+  //   borderBlockColor: "black",
+  //   width: 32,
+  //   height: 32,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   borderWidth: 1,
+  // },
   statusButton: {
     alignSelf: "center",
-    borderBlockColor: "black",
-    backgroundColor: "#58EE74",
     borderRadius: 30,
     flexDirection: "row",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    paddingLeft: 15,
   },
   statusText: {
     color: "black",
     fontWeight: "bold",
     fontSize: 19,
-    marginRight: 5,
+    marginHorizontal: 8,
   },
   statusIcon: {
-    borderRadius: "50%",
+    borderRadius: 50, // IMPORTANT (not "50%")
     backgroundColor: "white",
     padding: 3,
-    borderBlockColor: "black",
     width: 32,
     height: 32,
     justifyContent: "center",
@@ -220,6 +440,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Add a semi-transparent background
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 30,
+    gap: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   contentContainer: {
     width: "94%",
     height: "67%",
@@ -232,7 +474,7 @@ const styles = StyleSheet.create({
     top: 40,
     paddingHorizontal: 10,
     paddingTop: 10,
-    paddingBottom :10,
+    paddingBottom: 10,
     backgroundColor: "#fff",
 
     shadowColor: "#000",

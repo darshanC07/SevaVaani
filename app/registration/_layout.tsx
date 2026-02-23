@@ -7,6 +7,8 @@ export default function Layout() {
       <Stack.Screen name="EnterMobile" options={{ headerShown: false }} />
       <Stack.Screen name="OTPScreen" options={{ headerShown: false }} />
       <Stack.Screen name="EmailScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="ProfileSetup" options={{ headerShown: false }} />
+      <Stack.Screen name="WorkerProfile" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -1,0 +1,10 @@
+{
+    "profile_setup" : [
+       "May I know your full name, please?",
+       "Which language do you prefer to communicate in?",
+       "Could you please share your current address?",
+       "What type of work are you looking for — full-time, part-time, daily, or seasonal?",
+       "What kind of work do you specialize in? (For example: plumber, electrician, cleaner)",
+       "How many years of experience do you have in this field?"
+    ]
+}

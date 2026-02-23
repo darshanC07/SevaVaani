@@ -1,23 +1,263 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  NativeModules,
+  Alert
+} from 'react-native';
+import { initModel, predictIntent } from '../utils/ClassifierService';
+// import { initExtractorModel, predictAnswer,loadVocab } from '../utils/Extractor';
+import {
+  LoaderKitView
+} from 'react-native-loader-kit';
+import { useRouter } from 'expo-router';
+import scripts from '../scripts.json';
+import { predictAnswer } from '@/utils/Extractor';
 
 const AIChatOverlay = ({ onClose }: { onClose: () => void }) => {
+
+  const router = useRouter();
+  const { TTS_module, STT_module } = NativeModules;
+  const [isListening, setIsListening] = useState(false);
+  const [isConversationStarted, setIsConversationStarted] = useState(false);
+  const scrollviewref = useRef<ScrollView>(null)
+  const [messages, setMessages] = useState<
+    { id: number; text: string; sender: "ai" | "user" }[]
+  >([]);
+
+  const isActiveRef = useRef(true);
+
+  const sleep = (ms: number) =>
+    new Promise(resolve => setTimeout(resolve, ms));
+
+  const addMessage = (text: string, sender: "ai" | "user") => {
+    setMessages(prev => [
+      ...prev,
+      { id: Date.now() + Math.random(), text, sender }
+    ]);
+  };
+  const speakAndListen = async (question: string) => {
+    try {
+
+      await STT_module.speechStop();
+
+      setIsListening(false)
+      await TTS_module.getMsg(question);
+
+      await sleep(700); // allow TTS to fully finish
+
+      setIsListening(true)
+      const response = await STT_module.getSTTResult();
+
+      await sleep(700);
+      // await STT_module.stopListening();
+
+      setIsListening(false)
+      return response || "";
+
+    } catch (error: any) {
+      console.log("STT Error:", error);
+      return "";
+    }
+  };
+
+  const handleConversation = async () => {
+    try {
+
+      let text = await speakAndListen(
+        "Hello! How can I help you today?"
+      );
+      if (!isActiveRef.current) return;
+      if (!text) {
+        text = await speakAndListen(
+          "I didn't catch that. Please say that again."
+        );
+        if (!isActiveRef.current) return;
+      }
+
+      // setSpeechText(text);
+      addMessage(text, "user");
+
+      const { intent, confidence } = predictIntent(text);
+
+      console.log(`Intent: ${intent} (${(confidence * 100).toFixed(1)}%)`);
+
+      if (intent === "job_post" && confidence > 0.5) {
+
+        await TTS_module.getMsg(
+          "Sure! I can help you post a job."
+        );
+
+        await sleep(700);
+
+        let jobData: any = {};
+
+        for (let i = 0; i < scripts.job_post.length; i++) {
+          if (!isActiveRef.current) return;
+          const question = scripts.job_post[i];
+
+          // setResult(prev => prev + `\nAI: ${question}`);
+          addMessage(question, "ai");
+
+          let answer = await speakAndListen(question);
+          if (!isActiveRef.current) return;
+          if (!answer.trim()) {
+            await TTS_module.getMsg(
+              "I didn't catch that. Please say that again."
+            );
+            await sleep(700);
+            i--;
+            continue;
+          }
+
+          // setResult(prev => prev + `\nYou: ${answer}`);
+          addMessage(answer, "user");
+
+          switch (i) {
+            case 0:
+              const jobTitle = await predictAnswer("What is the job title?", answer);
+              jobData["job_details"] = jobTitle;
+              break;
+            case 1:
+              // const jobDescription = await predictAnswer("What is the job description?", answer);
+              jobData["description"] = answer;
+              break;
+            case 2:
+              const jobLocation = await predictAnswer("What is the job location?", answer);
+              jobData["location"] = jobLocation;
+              break;
+            case 3:
+              const jobBudget = await predictAnswer("What is the job budget?", answer);
+              jobData["budget_max"] = jobBudget;
+              break;
+            case 4:
+              const jobDuration = await predictAnswer("What is the job duration?", answer);
+              jobData["duration"] = jobDuration;
+              break;
+            default:
+              jobData["special_note"] = answer;
+          }
+        }
+
+        await TTS_module.getMsg(
+          "Your job has been created successfully!"
+        );
+
+        console.log("Final Job Data:", jobData);
+      }
+      else if (confidence > 0.5) {
+
+        if (intent === "list_nearby_worker") {
+
+          await TTS_module.getMsg(
+            "Fetching nearby workers..."
+          );
+
+          await sleep(500);
+
+          router.push("/client/WorkerRankingScreen");
+        }
+      } else if (intent === "other") { }
+
+    } catch (error: any) {
+      Alert.alert("Error", error?.message ?? String(error));
+    }
+  };
+
+  useEffect(() => {
+
+    const setup = async () => {
+      // await initModel();
+      // await loadVocab();
+      // await initExtractorModel();
+      // await STT_module.initRecognizer(); 
+      setIsConversationStarted(true);
+      addMessage("Hello! How can I help you today?", "ai");
+    };
+
+    setup();
+
+    return () => {
+      isActiveRef.current = false;
+      STT_module.speechStop();
+      TTS_module.stopSpeech();
+      // TTS_module.shutdown();
+    };
+
+  }, []);
+
+  useEffect(() => {
+    if (isConversationStarted) {
+      handleConversation();
+    }
+  }, [isConversationStarted]);
+
+  const handleClose = async () => {
+    isActiveRef.current = false;
+    try {
+      await STT_module.speechStop();
+      await TTS_module.stopSpeech();
+    } catch (e) {
+      console.log(e);
+    }
+
+    onClose();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>AI Assistant</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+        <TouchableOpacity onPress={handleClose}>
           <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.OverlayContainer}>
-        
-          <ScrollView 
-            style={styles.messagesContainer}
-            contentContainerStyle={styles.messagesContent}
-          >
-          </ScrollView>
-        
+
+      <View style={styles.overlayContainer}>
+        <ScrollView
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
+          ref={scrollviewref}
+          onContentSizeChange={() => scrollviewref.current?.scrollToEnd({ animated: true })}
+        >
+          {messages.map((msg) => (
+            <View
+              key={msg.id}
+              style={[
+                styles.messageRow,
+                msg.sender === "user"
+                  ? styles.userRow
+                  : styles.aiRow,
+              ]}
+            >
+              <View
+                style={[
+                  styles.messageBubble,
+                  msg.sender === "user"
+                    ? styles.userBubble
+                    : styles.aiBubble,
+                ]}
+              >
+                <Text style={{ fontSize: 11, fontWeight: 'bold', textAlign: msg.sender === "ai" ? 'left' : "right" }}>{msg.sender === "ai" ? "Assistant" : "You"}</Text>
+                <Text style={styles.messageText}>{msg.text}</Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+        {
+          isListening && (
+            <View style={{ backgroundColor: 'white', paddingHorizontal: 10, justifyContent: 'center', alignItems: 'center', borderRadius: 10, alignSelf: 'center', marginBottom: 10, position: 'absolute', bottom: 5 }}>
+              <LoaderKitView
+                style={{ width: 30, height: 30 }}
+                name={'BallPulse'}
+                animationSpeedMultiplier={1.0} // speed up/slow down animation, default: 1.0, larger is faster
+                color={'blue'} // Optional: color can be: 'red', 'green',... or '#ddd', '#ffffff',...
+              />
+            </View>)
+        }
       </View>
     </View>
   );
@@ -26,6 +266,41 @@ const AIChatOverlay = ({ onClose }: { onClose: () => void }) => {
 export default AIChatOverlay;
 
 const styles = StyleSheet.create({
+  messageRow: {
+    flexDirection: "row",
+    marginBottom: 10,
+  },
+
+  userRow: {
+    justifyContent: "flex-end",
+  },
+
+  aiRow: {
+    justifyContent: "flex-start",
+  },
+
+  messageBubble: {
+    maxWidth: "75%",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 15,
+  },
+
+  userBubble: {
+    backgroundColor: "#ffffff",
+    borderTopRightRadius: 0,
+  },
+
+  aiBubble: {
+    // backgroundColor: "#2E3BBF",
+    backgroundColor: "white",
+    borderTopLeftRadius: 0,
+  },
+
+  messageText: {
+    fontSize: 16,
+    color: "#000",
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -46,17 +321,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  closeButton: {
-    padding: 5,
-  },
   closeButtonText: {
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
   },
-  OverlayContainer: {
+  overlayContainer: {
     flex: 1,
-    backgroundColor: '#4560F4',
+    backgroundColor: '#5f76f5',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'white',
@@ -64,14 +336,15 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10,
   },
- 
   messagesContainer: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   messagesContent: {
     padding: 15,
   },
+  text: {
+    color: 'white',
+    fontSize: 16,
+    marginBottom: 10,
+  }
 });
-
-

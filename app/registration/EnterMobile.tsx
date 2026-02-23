@@ -17,7 +17,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 const EnterMobile = () => {
   const { OTPRequester } = NativeModules;
   const router = useRouter();
-  const { uid } = useLocalSearchParams();
+  const { uid ,email} = useLocalSearchParams();
   const [countryCode, setCountryCode] = useState("91");
   const [mobile, setMobile] = useState("");
   let { height, width } = useWindowDimensions();
@@ -27,7 +27,7 @@ const EnterMobile = () => {
     if (mobile.length == 10 && uid) {
       const text = await OTPRequester.requestOTP(uid,"worker");
       if(text === "success"){
-        router.push({pathname:"/registration/OTPScreen/", params:{number:mobile,uid:uid}});
+        router.push({pathname:"/registration/OTPScreen/", params:{number:mobile,uid:uid,email:email}});
       } else{
         alert("Failed to request OTP. Please try again.");
       }

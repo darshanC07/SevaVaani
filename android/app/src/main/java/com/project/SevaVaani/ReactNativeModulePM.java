@@ -17,6 +17,8 @@ public class ReactNativeModulePM implements ReactPackage {
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
+        modules.add(new TTS_module(reactContext));
+        modules.add(new STT_module(reactContext));
         modules.add(new OTPRequester(reactContext));
 
         return modules;

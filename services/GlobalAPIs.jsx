@@ -149,6 +149,7 @@ export const fetchRequestsOfWorker = async (WORKER_ID, lang) => {
     const response = await axios.get(
       `${BASE_URL}/${lang}/requests/worker/${WORKER_ID}`,
     );
+    console.log("error if any:", response?.error);
     return response.data;
   } catch (err) {
     console.error("Failed to fetch requests of worker:", err);

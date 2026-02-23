@@ -30,6 +30,7 @@ import SuccessModal from "@/components/SuccessModal";
 import ErrorModal from "@/components/ErrorModal";
 import { LoaderKitView } from "react-native-loader-kit";
 const index = () => {
+  console.log("HOME SCREEN RENDERED");
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language.toUpperCase();
@@ -53,6 +54,8 @@ const index = () => {
 
   const [isJobDataLoading, setIsJobDataLoading] = useState(false);
 
+  const prevOnlineStatus = useRef(false);
+  const isSyncingRef = useRef(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -106,7 +109,7 @@ const index = () => {
       setUser(userId);
       setName(uname);
       setEmail(uemail);
-      getJobs(currentLanguage);
+      // getJobs(currentLanguage);
     }
     fetchUserId();
   }, [])
@@ -118,90 +121,88 @@ const index = () => {
 
 
   useEffect(() => {
+    if (!contextObj.isOnline) return;
+    // if (hasSyncedRef.current) return;
+
+    // hasSyncedRef.current = true;
+
     async function handleSyncingData() {
-      let syncStatus = false;
+      setShowProcessingSyncData(true);
+      isSyncingRef.current = false;
+      prevOnlineStatus.current = false;
       try {
-        if (contextObj.isOnline) {
-          setShowProcessingSyncData(true);
-          const isDataAvailable = await getDataAvailableStatus();
-          if (isDataAvailable) {
-            // let syncStatus = false;
-            let offlineData = await getOfflineData();
-            offlineData = offlineData ? JSON.parse(offlineData) : null;
-            console.log("Offline data to sync:", offlineData);
-            try {
-              if (offlineData) {
-                if (offlineData.newAcceptanceRequests) {
-                  for (const request of offlineData.acceptanceRequests) {
-                    const response = await sendAcceptJobRequest(request.workerId, request.workerName, request.jobId);
-                    if (response) {
-                      console.log("Data synced successfully for request:", request);
-                      syncStatus = true;
-                    } else {
-                      console.error("Failed to sync data for request:", request);
-                      syncStatus = false;
-                    }
-                  }
-                }
-                else if (offlineData.newProposals) {
-                  for (const proposal of offlineData.proposals) {
-                    const response = await sendProposal(proposal.workerId, proposal.workerName, proposal.jobId, proposal.proposal);
-                    if (response) {
-                      console.log("Data synced successfully for proposal:", proposal);
-                      syncStatus = true;
-                    } else {
-                      console.error("Failed to sync data for proposal:", proposal);
-                      syncStatus = false;
-                    }
-                  }
-                }
-                else if (offlineData.newChats) {
+        const isDataAvailable = await getDataAvailableStatus();
+        if (!isDataAvailable) return;
 
-                  for (const chat of offlineData.chats) {
-                    const response = await sendMessage(chat.chatId, chat.from, chat.to, chat.msg);
-                    if (response) {
-                      console.log("Data synced successfully for chat:", chat);
-                      syncStatus = true;
-                    } else {
-                      console.error("Failed to sync data for chat:", chat);
-                      syncStatus = false;
-                    }
-                  }
-                }
-                // const response = await syncData(user, offlineData);
-                // if (response.code === 1) {
-                //   console.log("Data synced successfully");
-                //   await AsyncStorage.removeItem("offlineData");
-                //   await AsyncStorage.setItem("isDataAvailable", "false");
-                // } else {
-                //   console.error("Failed to sync data:", response.message);
-                // }
-              }
-            } catch (error) {
-              console.error("Error during data sync:", error);
-              syncStatus = false;
-            }
-            setShowProcessingSyncData(false);
+        let offlineData = await getOfflineData();
+        offlineData = offlineData ? JSON.parse(offlineData) : null;
 
+        if (!offlineData) return;
+
+        let allSuccess = true;
+
+        if (offlineData.newAcceptanceRequests) {
+          for (const request of offlineData.acceptanceRequests) {
+            const response = await sendAcceptJobRequest(
+              request.workerId,
+              request.workerName,
+              request.jobId
+            );
+            if (!response) allSuccess = false;
           }
         }
-      } catch (error) {
-        setShowProcessingSyncData(false);
-      } finally {
-        setShowProcessingSyncData(false);
-        if (syncStatus) {
+
+        if (offlineData.newProposals) {
+          for (const proposal of offlineData.proposals) {
+            const response = await sendProposal(
+              proposal.workerId,
+              proposal.workerName,
+              proposal.jobId,
+              proposal.proposal
+            );
+            if (!response) allSuccess = false;
+          }
+        }
+
+        if (offlineData.newChats) {
+          for (const chat of offlineData.chats) {
+            const response = await sendMessage(
+              chat.chatId,
+              chat.from,
+              chat.to,
+              chat.msg
+            );
+            if (!response) allSuccess = false;
+          }
+        }
+
+        if (allSuccess) {
           await AsyncStorage.removeItem("offlineData");
           await setDataAvailableStatus(false);
-          console.log("Offline data cleared after successful sync.");
           setSuccessMsg("Your offline data has been successfully synced!");
           setSuccessModal(true);
         } else {
-          setErrorMsg("Failed to sync your offline data. It will be retried automatically when you are online again.");
+          setErrorMsg("Failed to sync your offline data.");
           setShowErrorAlert(true);
         }
+
+      } catch (error) {
+        setErrorMsg("Unexpected error during sync.");
+        setShowErrorAlert(true);
+      } finally {
+        setShowProcessingSyncData(false);
       }
     }
-    handleSyncingData();
+    if (!prevOnlineStatus.current && contextObj.isOnline) {
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
+      handleSyncingData().finally(() => {
+        isSyncingRef.current = false;
+        prevOnlineStatus.current = false
+      });
+    }
+
+    prevOnlineStatus.current = contextObj.isOnline;
   }, [contextObj.isOnline])
 
   return (

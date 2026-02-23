@@ -61,7 +61,7 @@ const EmailScreen = () => {
 
         router.push({
           pathname: "/registration/EnterMobile",
-          params: { uid: data.uid },
+          params: { uid: data.uid,email : email },
         });
       } else {
         alert(data.error || "Failed to create user");

@@ -12,15 +12,25 @@ import {
 } from "react-native";
 import React, { useState, useRef, use } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import config from "../../config.json";
+import SuccessModal from "@/components/SuccessModal";
+import ErrorModal from "@/components/ErrorModal";
 
 const OTPScreen = () => {
-  const {number,uid} = useLocalSearchParams();
+  const router = useRouter();
+  const { number, uid,email } = useLocalSearchParams();
   const [otp, setOtp] = useState("");
   const otpInputRef = useRef<TextInput>(null);
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
+
+  const [isSuccessModal, setSuccessModal] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
 
   async function handleVerifyOtp() {
     if (otp.length === 4) {
@@ -33,17 +43,21 @@ const OTPScreen = () => {
         body: JSON.stringify({
           entered_otp: otp,
           uid: uid,
-          role : "worker"
+          role: "worker"
         }),
       });
       const data = await res.json();
       if (res.ok) {
         console.log("OTP verified successfully");
-        alert("OTP verified successfully");
-          
+        // alert("OTP verified successfully");
+        setSuccessMsg("OTP verified successfully");
+        setSuccessModal(true);
       } else {
         console.log("OTP verification failed:", data.message);
-        alert("OTP verification failed: " + data.message);
+        setErrorMsg(data.message || "OTP verification failed");
+        setShowErrorAlert(true);
+        router.back();
+        // alert("OTP verification failed: " + data.message);
       }
     }
   }
@@ -138,10 +152,15 @@ const OTPScreen = () => {
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={()=>handleVerifyOtp()}>
+        <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={() => handleVerifyOtp()}>
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </View>
+      <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => {
+        setSuccessModal(false);
+        router.push({ pathname: "/registration/ProfileSetup", params: { uid: uid, number: number,email : email } })
+      }} />
+      <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message={errorMsg} />
     </SafeAreaView>
   );
 };

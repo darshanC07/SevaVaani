@@ -127,7 +127,7 @@ const index = () => {
   }, [])
 
   useEffect(() => {
-    getJobs(currentLanguage);
+    getJobs(currentLanguage.toLocaleLowerCase());
   }, [currentLanguage])
 
 

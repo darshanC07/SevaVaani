@@ -229,7 +229,7 @@ const SendRequest = () => {
     const startFunction = async () => {
       if (job && job.user_id) {
         console.log("Job data received in SendRequest:", job);
-        getUserDetails(job.user_id, currentLanguage);
+        getUserDetails(job.user_id, currentLanguage.toLocaleLowerCase());
         const userId = await getUserId();
         if (userId) {
           setWorkerId(userId);

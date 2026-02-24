@@ -79,16 +79,16 @@ const Requests = () => {
     }
   };
   useEffect(() => {
-    fetchRequests(currentLanguage);
+    fetchRequests(currentLanguage.toLocaleLowerCase());
   }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchRequests(currentLanguage);
+    fetchRequests(currentLanguage.toLocaleLowerCase());
   }, []);
 
   useEffect(() => {
-    fetchRequests(currentLanguage);
+    fetchRequests(currentLanguage.toLocaleLowerCase());
   }, [currentLanguage])
 
   const renderStatus = (status: string) => {

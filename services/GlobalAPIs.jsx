@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms";
+export const BASE_URL = "https://05853xwg-5000.inc1.devtunnels.ms/";
 
 export const UpdateWorkerLoc = async (WORKER_ID, latitude, longitude) => {
   try {
@@ -153,6 +153,18 @@ export const fetchRequestsOfWorker = async (WORKER_ID, lang) => {
     return response.data;
   } catch (err) {
     console.error("Failed to fetch requests of worker:", err);
+    return null;
+  }
+};
+
+export const fetchOngoingJobs = async (WORKER_ID, lang) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/get_ongoing_jobs/worker/${WORKER_ID}`,
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch ongoing jobs:", err);
     return null;
   }
 };

@@ -184,7 +184,7 @@ const Profile = () => {
           id="normal-horizontal-line"
         ></View>
         <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 15 }}>
-          <TouchableOpacity style={styles.profileOption}>
+          <TouchableOpacity style={styles.profileOption} onPress={() => router.push("/worker/MyWorks")}>
             <Image
               source={require("../../assets/Profile/Choice.png")}
               style={styles.profileOptionIcon}

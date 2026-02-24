@@ -244,3 +244,16 @@ export const syncData = async (WORKER_ID, DATA) => {
     throw err;
   }
 };
+
+
+export const fetchOngoingJobs = async (WORKER_ID, lang) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/get_ongoing_jobs/worker/${WORKER_ID}`,
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch ongoing jobs:", err);
+    return null;
+  }
+};

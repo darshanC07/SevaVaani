@@ -21,6 +21,9 @@ import SuccessModal from "@/components/SuccessModal";
 import ErrorModal from "@/components/ErrorModal";
 import { useTranslation } from "react-i18next";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
+import NavBar from "../../components/NavBar";
+import BottomNavBar from "../../components/BottomNavBar";
+import CompletionQRModal from "../../components/CompletionQRModal";
 
 const SendRequest = () => {
   const { jobData } = useLocalSearchParams();
@@ -30,7 +33,11 @@ const SendRequest = () => {
     name: "User",
     jobs_count: 0
   });
-  const job = jobData ? JSON.parse(jobData) : {};
+
+  // Handle jobData potentially being string | string[]
+  const jobStr = Array.isArray(jobData) ? jobData[0] : jobData;
+  const job = jobStr ? JSON.parse(jobStr) : {};
+
   const [toSendRequest, setToSendRequest] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const [time, setTime] = useState(0);
@@ -43,6 +50,7 @@ const SendRequest = () => {
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [isQRModalVisible, setIsQRModalVisible] = useState(false);
 
   const router = useRouter();
   let { height } = useWindowDimensions();
@@ -57,7 +65,7 @@ const SendRequest = () => {
     console.log("Received job data in SendRequest:", job);
   }, []);
 
-  async function getUserDetails(uid, lang) {
+  async function getUserDetails(uid: string, lang: string) {
     try {
       console.log("Fetching details for user ID:", uid);
       const clientData = await fetchClientDetails(uid, lang);
@@ -229,7 +237,7 @@ const SendRequest = () => {
     const startFunction = async () => {
       if (job && job.user_id) {
         console.log("Job data received in SendRequest:", job);
-        getUserDetails(job.user_id, currentLanguage.toLocaleLowerCase());
+        getUserDetails(job.user_id, currentLanguage);
         const userId = await getUserId();
         if (userId) {
           setWorkerId(userId);
@@ -252,14 +260,15 @@ const SendRequest = () => {
         flex: 1,
       }}
     >
+      <NavBar />
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-          <Text style={styles.title}>Send Job request</Text>
+          <Text style={styles.title}>{job.showCompleteOption ? "Currently Active" : "Send Job request"}</Text>
           <View style={styles.employerCard}>
             <Text style={styles.sectionHeading}>Employer Information</Text>
             <View style={styles.employerRow}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{client?.name[0]}</Text>
+                <Text style={styles.avatarText}>{client?.name ? client?.name[0] : 'U'}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.name}>{client?.name}</Text>
@@ -327,21 +336,30 @@ const SendRequest = () => {
           {
             !toSendRequest && (
               <View style={styles.footer}>
-                <TouchableOpacity style={styles.acceptBtn}
-                  onPress={handleAcceptJobReq}>
-                  <Text style={styles.acceptText}>Accept</Text>
-                </TouchableOpacity>
+                {job.showCompleteOption ? (
+                  <TouchableOpacity 
+                    style={[styles.acceptBtn, { backgroundColor: '#4560F4' }]} 
+                    onPress={() => setIsQRModalVisible(true)}
+                  >
+                    <Text style={styles.acceptText}>Complete</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.acceptBtn} onPress={handleAcceptJobReq}>
+                      <Text style={styles.acceptText}>Accept</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.sendBtn}
-                  // onPress={() => router.push("/worker/ConfirmRequest")}
-                  onPress={() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
-                    setToSendRequest(true);
-                  }}
-                >
-                  <Text style={styles.sendText}>Send Request</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.sendBtn}
+                      onPress={() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                        setToSendRequest(true);
+                      }}
+                    >
+                      <Text style={styles.sendText}>Send Request</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             )
           }
@@ -358,10 +376,6 @@ const SendRequest = () => {
                 </View>
                 <View style={styles.inputRow}>
                   <Text style={styles.inputLabel}>Estimated Time</Text>
-                  {/* <View style={styles.inputBoxRow}>
-                  <Text>1</Text>
-                  <Text style={{ marginLeft: 6 }}>h</Text>
-                </View> */}
                   <View style={{ flexDirection: 'row', gap: 5 }}>
                     <TextInput style={[styles.textInput, {
                       width: '72%'
@@ -380,36 +394,27 @@ const SendRequest = () => {
                 <TouchableOpacity
                   style={styles.sendBtn}
                   onPress={handleSendProposal}
-                // onPress={() => {
-                //   scrollViewRef.current?.scrollToEnd({ animated: true });
-                //   setToSendRequest(true);
-                // }}
                 >
                   <Text style={styles.sendText}>Confirm</Text>
                 </TouchableOpacity>
               </View>
             )
           }
-
-
-          {/* <View style={styles.footer}>
-          <TouchableOpacity style={styles.acceptBtn} onPress={() => router.back()}>
-            <Text style={styles.acceptText}>Go back</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.sendBtn}
-            onPress={() => router.push("/worker/ConfirmRequest")}
-          >
-            <Text style={styles.sendText}>Send Request</Text>
-          </TouchableOpacity>
-        </View> */}
           <View style={{ height: 40 }} />
         </ScrollView>
         <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => setSuccessModal(false)} />
         <ErrorModal isVisible={showErrorAlert} toggleModal={setShowErrorAlert} title="Error" message={errorMsg} />
-
       </KeyboardAvoidingView>
+      <CompletionQRModal 
+        isVisible={isQRModalVisible} 
+        onClose={() => setIsQRModalVisible(false)}
+        workerId={workerId}
+        workerName={workerName}
+        jobId={job.job_id}
+        clientName={client?.name || "Client"}
+        clientId={job.user_id}
+      />
+      <BottomNavBar />
     </SafeAreaView>
   );
 };
@@ -420,7 +425,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "500",
-    margin: 20,
+    marginHorizontal: 20,
+    marginVertical: 14
   },
 
   employerCard: {

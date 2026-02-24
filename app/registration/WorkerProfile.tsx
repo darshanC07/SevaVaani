@@ -17,12 +17,13 @@ import DropDownPicker from "react-native-dropdown-picker";
 
 const WorkerProfile = () => {
   const { uid, number, userEmail } = useLocalSearchParams();
-  console.log("Received params in WorkerProfile:", { uid, number, userEmail });
   const router = useRouter();
-
   const [name, onChangeName] = useState("");
   const [finalNumber, onChangeFinalNumber] = useState(number || "9999999999");
   const [email, onChangeEmail] = useState(userEmail || "abc@gmail.com");
+  const [Age, onChangeAge] = useState("");
+  const [adress, onChangeAdress] = useState("");
+  const [jobRole, onChangeJobRole] = useState("");
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(null);
   const [items, setItems] = useState([
@@ -46,13 +47,9 @@ const WorkerProfile = () => {
     { label: "Daily", value: "Daily" },
     { label: "Seasonal", value: "seasonal" },
   ]);
-  const [adress, onChangeAdress] = useState("");
-  const [jobRole, onChangeJobRole] = useState("");
-  const [Age, onChangeAge] = useState("");
 
   const black = "#000000";
-
-  let { height, width } = useWindowDimensions();
+  let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
   return (
@@ -78,6 +75,7 @@ const WorkerProfile = () => {
             </View>
 
             <View style={styles.card}>
+              <Text style={styles.label}>Name</Text>
               <TextInput
                 style={styles.input}
                 onChangeText={onChangeName}
@@ -87,22 +85,30 @@ const WorkerProfile = () => {
               />
 
               <View style={styles.row}>
-                <TextInput
-                  style={[styles.input, styles.halfInput]}
-                  value={finalNumber?.toString()}
-                  editable={false}
-                  placeholder="Mobile Number"
-                />
-                <TextInput
-                  style={[styles.input, styles.halfInput]}
-                  onChangeText={onChangeAge}
-                  value={Age}
-                  placeholder="Age"
-                  keyboardType="numeric"
-                  placeholderTextColor="#777"
-                />
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={styles.label}>Mobile Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={finalNumber?.toString()}
+                    editable={false}
+                    placeholder="Mobile Number"
+                  />
+                </View>
+
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text style={styles.label}>Age</Text>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={onChangeAge}
+                    value={Age}
+                    placeholder="Age"
+                    keyboardType="numeric"
+                    placeholderTextColor="#777"
+                  />
+                </View>
               </View>
 
+              <Text style={styles.label}>Email</Text>
               <TextInput
                 style={[styles.input, styles.disabledInput]}
                 value={email?.toString()}
@@ -110,6 +116,7 @@ const WorkerProfile = () => {
                 placeholder="Email"
               />
 
+              <Text style={styles.label}>Language</Text>
               <DropDownPicker
                 style={styles.dropdown}
                 open={open}
@@ -122,6 +129,7 @@ const WorkerProfile = () => {
                 zIndex={3000}
               />
 
+              <Text style={styles.label}>Address</Text>
               <TextInput
                 style={styles.input}
                 onChangeText={onChangeAdress}
@@ -130,6 +138,7 @@ const WorkerProfile = () => {
                 placeholderTextColor="#777"
               />
 
+              <Text style={styles.label}>Job Role</Text>
               <TextInput
                 style={styles.input}
                 onChangeText={onChangeJobRole}
@@ -138,6 +147,7 @@ const WorkerProfile = () => {
                 placeholderTextColor="#777"
               />
 
+              <Text style={styles.label}>Work-time Preference</Text>
               <DropDownPicker
                 style={styles.dropdown}
                 open={open_time}
@@ -150,6 +160,7 @@ const WorkerProfile = () => {
                 zIndex={2000}
               />
 
+              <Text style={styles.label}>Availability</Text>
               <DropDownPicker
                 style={styles.dropdown}
                 open={open_Availability}
@@ -239,6 +250,13 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 5,
+    color: "#333",
   },
 
   input: {

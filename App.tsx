@@ -7,6 +7,8 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 import type { ConfirmationResult } from "firebase/auth";
+import './i18n';
+import { useTranslation } from 'react-i18next';
 // import type { FirebaseAuthTypes } from 'firebase/auth';
 
 function App() {

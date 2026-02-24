@@ -1,0 +1,70 @@
+{
+  "common": {
+    "continue": "जारी रखें",
+    "skip": "छोड़ें",
+    "next": "अगला",
+    "login": "लॉग इन",
+    "register": "रजिस्टर",
+    "logout": "लॉग आउट",
+    "loading": "लोड हो रहा है...",
+    "somethingWentWrong": "कुछ गलत हो गया",
+    "appName": "सेवा वाणी"
+  },
+  "onboarding": {
+    "screen1Title": "भरोसेमंद कुशल पेशेवर",
+    "screen1Desc": "घर और दैनिक सेवाओं के लिए प्रशिक्षित पेशेवर",
+    "screen2Title": "सेकंडों में सेवाएं बुक करें",
+    "screen2Desc": "सेवा चुनें, समय चुनें, और आराम करें",
+    "screen3Title": "अपनी आवाज़ से बात करें",
+    "screen3Desc": "बस अपनी ज़रूरतें बोलें और आराम करें, हमारा सहायक आपसे बात करेगा, हैंड्स-फ्री"
+  },
+  "registration": {
+    "selectRole": "भूमिका चुनें",
+    "selectRoleDesc": "सीधे संवाद के साथ काम शुरू करें या नियुक्ति करें। हम प्रक्रिया को सरल और तेज़ बनाते हैं।",
+    "recruiter": "भर्तीकर्ता",
+    "recruiterDesc": "कुशल श्रमिकों को सीधे नियुक्त करें और अपनी नौकरियां तेज़ी से भरें।",
+    "worker": "कर्मचारी",
+    "workerDesc": "अपने कौशल से मेल खाने वाली नौकरियां खोजें और भर्तीकर्ताओं से आसानी से जुड़ें।",
+    "createUser": "उपयोगकर्ता बनाएं",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "enterEmailAndPassword": "कृपया ईमेल और पासवर्ड दर्ज करें",
+    "failedToCreateUser": "उपयोगकर्ता बनाने में विफल",
+    "verifyMobileNumber": "अपना मोबाइल नंबर सत्यापित करें",
+    "sendOneTimeCode": "हम इस नंबर पर एक बार का कोड भेजेंगे",
+    "enterMobileNumber": "मोबाइल नंबर दर्ज करें",
+    "failedToRequestOTP": "OTP अनुरोध विफल। कृपया पुनः प्रयास करें।",
+    "sendCode": "कोड भेजें",
+    "enterVerificationCode": "सत्यापन कोड दर्ज करें",
+    "sentFourDigitCode": "हमने आपको 4-अंकों का कोड भेजा है",
+    "otpVerifiedSuccess": "OTP सफलतापूर्वक सत्यापित",
+    "otpVerificationFailed": "OTP सत्यापन विफल"
+  },
+  "worker": {
+    "online": "ऑनलाइन",
+    "goodMorning": "सुप्रभात {{name}}",
+    "findJobsNearYou": "आस-पास नौकरियां खोजें",
+    "searchJobs": "नौकरियां खोजें...",
+    "availableJobsNearYou": "आसपास उपलब्ध नौकरियां",
+    "plumbingWork": "प्लंबिंग कार्य",
+    "viewJob": "नौकरी देखें",
+    "minsAgo": "{{count}} मिनट पहले"
+  },
+  "profile": {
+    "standardMember": "मानक सदस्य",
+    "myBooking": "मेरी बुकिंग",
+    "chatHistory": "चैट इतिहास",
+    "helpAndSupport": "सहायता और समर्थन",
+    "wallet": "वॉलेट",
+    "myRatings": "मेरी रेटिंग",
+    "manageAddress": "पता प्रबंधित करें",
+    "setting": "सेटिंग",
+    "aboutUs": "हमारे बारे में",
+    "referAndEarn": "रेफ़र करें और ₹100 कमाएं",
+    "referAndEarnDesc": "जब आपका मित्र अपनी पहली बुकिंग पूरी करे तो ₹100 पाएं",
+    "referNow": "अभी रेफ़र करें"
+  },
+  "navbar": {
+    "languageLabel": "हि"
+  }
+}

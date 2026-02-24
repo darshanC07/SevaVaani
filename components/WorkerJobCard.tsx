@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const WorkerJobCard = () => {
+  const { t } = useTranslation();
   return (
     <View style={styles.jobCard}>
       <View style={styles.jobDetailTopContainer}>
@@ -10,7 +12,7 @@ const WorkerJobCard = () => {
           style={styles.jobIcon}
         />
         <View style={{ gap: 3 }}>
-          <Text style={{ fontSize: 17, fontWeight: "700" }}>Plumbing Work</Text>
+          <Text style={{ fontSize: 17, fontWeight: "700" }}>{t('worker.plumbingWork')}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
             <Image
               source={require("../assets/worker/Location.png")}
@@ -20,7 +22,7 @@ const WorkerJobCard = () => {
           </View>
         </View>
         <View style={{ alignItems: "center", flex: 1, height: "100%" }}>
-          <Text>2 mins ago</Text>
+          <Text>{t('worker.minsAgo', { count: 2 })}</Text>
         </View>
       </View>
       <View style={styles.jobContent}>
@@ -42,7 +44,7 @@ const WorkerJobCard = () => {
       </View>
       <View style={styles.jobViewButton}>
         <Text style={{ fontSize: 16, color: "white", fontWeight: "bold" }}>
-          View Job
+          {t('worker.viewJob')}
         </Text>
       </View>
     </View>

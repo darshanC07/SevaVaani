@@ -2,12 +2,14 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 const OnBoarding2 = () => {
     const router = useRouter();
+    const { t } = useTranslation();
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={{ alignItems: "flex-end" }} onPress={()=>router.push("/OnBoarding3")}>
-        <Text style={styles.skip}>Skip</Text>
+        <Text style={styles.skip}>{t('common.skip')}</Text>
       </TouchableOpacity>
       <View style={{ alignItems: "center", marginTop: 50, gap: 20 }}>
         <Image
@@ -15,14 +17,14 @@ const OnBoarding2 = () => {
           style={styles.image}
         />
         <Text style={{ fontSize: 26, textAlign: "center" }}>
-          Book Services in Seconds
+          {t('onboarding.screen2Title')}
         </Text>
         <Text style={{ textAlign: "center", color: "#757575" }}>
-          Choose a service, pick a time, and relax
+          {t('onboarding.screen2Desc')}
         </Text>
       </View>
       <TouchableOpacity style={styles.button} onPress={()=>router.push("/OnBoarding3")}>
-        <Text style={styles.buttonText}>Next</Text>
+        <Text style={styles.buttonText}>{t('common.next')}</Text>
       </TouchableOpacity>
       <View
         style={{

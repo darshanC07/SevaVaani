@@ -12,8 +12,10 @@ import {
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const MobileVerification1 = () => {
+  const { t } = useTranslation();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   return (
@@ -66,9 +68,9 @@ const MobileVerification1 = () => {
         }}
       >
         <View style={styles.textContainer}>
-          <Text style={styles.heading}>Verify Your Mobile Number</Text>
+          <Text style={styles.heading}>{t('registration.verifyMobileNumber')}</Text>
           <Text style={styles.desc}>
-            We'll send a one-time code to this Number
+            {t('registration.sendOneTimeCode')}
           </Text>
         </View>
 
@@ -83,7 +85,7 @@ const MobileVerification1 = () => {
           </View>
           <TextInput
             style={styles.input}
-            placeholder="Enter Mobile Number"
+            placeholder={t('registration.enterMobileNumber')}
             keyboardType="phone-pad"
             maxLength={10}
             placeholderTextColor="#999"
@@ -95,7 +97,7 @@ const MobileVerification1 = () => {
           style={styles.continueButton}
           onPress={() => router.push('/registration/otp-verification')}
         >
-          <Text style={styles.buttonText}>Send Code</Text>
+          <Text style={styles.buttonText}>{t('registration.sendCode')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

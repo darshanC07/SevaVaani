@@ -1,22 +1,19 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
+import LanguageSelector from "./LanguageSelector";
 
 const NavBar = () => {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <Text style={styles.appName}>SevaVaani</Text>
+      <Text style={styles.appName}>{t('common.appName')}</Text>
       <View style={styles.rightSide}>
         <Image
           source={require("../assets/navbar/notification.png")}
           style={{ width: 35, height: 35 }}
         />
-        <View style={styles.languageIcon}>
-          <Image
-            source={require("../assets/navbar/language.png")}
-            style={{ width: 30, height: 30 }}
-          />
-          <Text style={styles.lang}>EN</Text>
-        </View>
+        <LanguageSelector />
       </View>
     </View>
   );

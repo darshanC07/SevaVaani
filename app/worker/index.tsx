@@ -16,9 +16,11 @@ import NavBar from "../../components/NavBar";
 import { setStatusBarTranslucent } from "expo-status-bar";
 import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
+import { useTranslation } from "react-i18next";
 
 const index = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   return (
@@ -34,7 +36,7 @@ const index = () => {
         <View style={styles.topContainer}>
           <View style={styles.horizontalLine} />
           <View style={styles.statusButton}>
-            <Text style={styles.statusText}>Online</Text>
+            <Text style={styles.statusText}>{t('worker.online')}</Text>
             <View style={styles.statusIcon}>
               <Image
                 source={require("../../assets/tools.png")}
@@ -44,10 +46,10 @@ const index = () => {
           </View>
           <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
             <Text style={{ color: "white", fontSize: 15 }}>
-              Good morning Ramesh
+              {t('worker.goodMorning', { name: 'Ramesh' })}
             </Text>
             <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>
-              Find Jobs Near You
+              {t('worker.findJobsNearYou')}
             </Text>
           </View>
           <View
@@ -62,7 +64,7 @@ const index = () => {
           >
             <TextInput
               style={styles.searchBar}
-              placeholder="Search Jobs..."
+              placeholder={t('worker.searchJobs')}
               placeholderTextColor={"grey"}
             />
             <View style={styles.searchIconBox}>
@@ -77,7 +79,7 @@ const index = () => {
           id="available-jobs-container"
           style={styles.contentContainer}
         >
-          <Text style={{fontSize : 18, fontWeight : '500'}}>Available Jobs near You</Text>
+          <Text style={{fontSize : 18, fontWeight : '500'}}>{t('worker.availableJobsNearYou')}</Text>
           <ScrollView style={{marginVertical : 10,}}>
             <WorkerJobCard />
             <WorkerJobCard />

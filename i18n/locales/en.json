@@ -1,0 +1,70 @@
+{
+  "common": {
+    "continue": "Continue",
+    "skip": "Skip",
+    "next": "Next",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "loading": "Loading...",
+    "somethingWentWrong": "Something went wrong",
+    "appName": "SevaVaani"
+  },
+  "onboarding": {
+    "screen1Title": "Skilled Professionals You Can Trust",
+    "screen1Desc": "Trained Professionals for home and daily services",
+    "screen2Title": "Book Services in Seconds",
+    "screen2Desc": "Choose a service, pick a time, and relax",
+    "screen3Title": "Interact by Your Voice",
+    "screen3Desc": "Just speak up your requirements and chill, our assistant will talk with you, hands-free"
+  },
+  "registration": {
+    "selectRole": "Select a Role",
+    "selectRoleDesc": "Start working or hiring with direct communication. We make the process simple and fast.",
+    "recruiter": "Recruiter",
+    "recruiterDesc": "Hire skilled workers directly and fill your jobs faster.",
+    "worker": "Worker",
+    "workerDesc": "Discover jobs that match your skills and connect with recruiters easily.",
+    "createUser": "Create User",
+    "email": "Email",
+    "password": "Password",
+    "enterEmailAndPassword": "Please enter email and password",
+    "failedToCreateUser": "Failed to create user",
+    "verifyMobileNumber": "Verify your mobile number",
+    "sendOneTimeCode": "We'll send a one-time code to this number",
+    "enterMobileNumber": "Enter mobile number",
+    "failedToRequestOTP": "Failed to request OTP. Please try again.",
+    "sendCode": "Send Code",
+    "enterVerificationCode": "Enter verification code",
+    "sentFourDigitCode": "We have sent you a 4-digit code on",
+    "otpVerifiedSuccess": "OTP verified successfully",
+    "otpVerificationFailed": "OTP verification failed"
+  },
+  "worker": {
+    "online": "Online",
+    "goodMorning": "Good morning {{name}}",
+    "findJobsNearYou": "Find Jobs Near You",
+    "searchJobs": "Search Jobs...",
+    "availableJobsNearYou": "Available Jobs near You",
+    "plumbingWork": "Plumbing Work",
+    "viewJob": "View Job",
+    "minsAgo": "{{count}} mins ago"
+  },
+  "profile": {
+    "standardMember": "Standard member",
+    "myBooking": "My Booking",
+    "chatHistory": "Chat History",
+    "helpAndSupport": "Help & Support",
+    "wallet": "Wallet",
+    "myRatings": "My Ratings",
+    "manageAddress": "Manage Address",
+    "setting": "Setting",
+    "aboutUs": "About Us",
+    "referAndEarn": "Refer & earn ₹100",
+    "referAndEarnDesc": "Get ₹100 when your friend completes their first booking",
+    "referNow": "Refer Now"
+  },
+  "navbar": {
+    "languageLabel": "EN"
+  }
+}

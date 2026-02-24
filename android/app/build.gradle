@@ -88,6 +88,9 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.project.SevaVaani'
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId 'com.project.SevaVaani'
         minSdkVersion rootProject.ext.minSdkVersion

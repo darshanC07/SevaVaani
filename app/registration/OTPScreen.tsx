@@ -14,9 +14,11 @@ import React, { useState, useRef, use } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import config from "../../config.json";
+import { useTranslation } from "react-i18next";
 
 const OTPScreen = () => {
   const {number,uid} = useLocalSearchParams();
+  const { t } = useTranslation();
   const [otp, setOtp] = useState("");
   const otpInputRef = useRef<TextInput>(null);
   let { height, width } = useWindowDimensions();
@@ -39,11 +41,11 @@ const OTPScreen = () => {
       const data = await res.json();
       if (res.ok) {
         console.log("OTP verified successfully");
-        alert("OTP verified successfully");
+        alert(t('registration.otpVerifiedSuccess'));
           
       } else {
         console.log("OTP verification failed:", data.message);
-        alert("OTP verification failed: " + data.message);
+        alert(t('registration.otpVerificationFailed') + ": " + data.message);
       }
     }
   }
@@ -90,8 +92,8 @@ const OTPScreen = () => {
         style={[styles.content, { height: height - 170, paddingTop: "25%" }]}
       >
         <View style={styles.textContainer}>
-          <Text style={styles.heading}>Enter verification code</Text>
-          <Text style={styles.desc}>We have sent you a 4-digit code on</Text>
+          <Text style={styles.heading}>{t('registration.enterVerificationCode')}</Text>
+          <Text style={styles.desc}>{t('registration.sentFourDigitCode')}</Text>
           <Text style={{ fontSize: 20, marginTop: 10, fontWeight: "bold" }}>
             +91 {number}
           </Text>
@@ -139,7 +141,7 @@ const OTPScreen = () => {
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={()=>handleVerifyOtp()}>
-          <Text style={styles.continueText}>Continue</Text>
+          <Text style={styles.continueText}>{t('common.continue')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

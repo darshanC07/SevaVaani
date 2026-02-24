@@ -2,12 +2,14 @@ import { View, Text, Image, StyleSheet, TouchableHighlight, TouchableOpacity } f
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 const OnBoarding1 = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={{ alignItems: "flex-end" }} onPress={()=>router.push("/OnBoarding3")}>
-        <Text style={styles.skip}>Skip</Text>
+        <Text style={styles.skip}>{t('common.skip')}</Text>
       </TouchableOpacity>
       <View style={{ alignItems: "center", marginTop: 50, gap: 20 }}>
         <Image
@@ -15,14 +17,14 @@ const OnBoarding1 = () => {
           style={styles.image}
         />
         <Text style={{ fontSize: 26, textAlign: "center" }}>
-          Skilled Professionals You Can Trust
+          {t('onboarding.screen1Title')}
         </Text>
         <Text style={{ textAlign: "center", color: "#757575" }}>
-          Trained Professionals for home and daily services
+          {t('onboarding.screen1Desc')}
         </Text>
       </View>
       <TouchableOpacity style={styles.button} onPress={()=>router.push("/OnBoarding2")}>
-        <Text style={styles.buttonText}>Continue</Text>
+        <Text style={styles.buttonText}>{t('common.continue')}</Text>
       </TouchableOpacity>
       <View
         style={{

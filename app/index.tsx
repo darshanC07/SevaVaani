@@ -130,8 +130,8 @@ export default function Index() {
       if (uid === null) {
         router.replace("/login");
       } else {
-        // router.replace("/worker");
-        router.push("/registration/ProfileSetup");
+        router.replace("/worker");
+        // router.push("/registration/ProfileSetup");
         // router.push("/registration/WorkerProfile");
       }
     }

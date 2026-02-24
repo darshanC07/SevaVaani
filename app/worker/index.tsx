@@ -59,6 +59,9 @@ const index = () => {
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
+
+  const [showLoading, setShowLoading] = useState(false);
+
   const toggleStatus = () => {
     Animated.timing(slideAnim, {
       toValue: contextObj.isOnline ? 1 : 0,
@@ -96,6 +99,15 @@ const index = () => {
       setIsJobDataLoading(false);
     }
   }
+
+
+  useEffect(() => {
+    if (!contextObj.isIemodelLoaded) {
+      setShowLoading(true);
+    } else {
+      setShowLoading(false);
+    }
+  }, [contextObj.isIemodelLoaded])
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -193,7 +205,7 @@ const index = () => {
         setShowProcessingSyncData(false);
       }
     }
-    if (!prevOnlineStatus.current && contextObj.isOnline) {
+    if (!prevOnlineStatus.current && contextObj.isOnline && contextObj.isIemodelLoaded) {
       if (isSyncingRef.current) return;
       isSyncingRef.current = true;
       handleSyncingData().finally(() => {
@@ -213,6 +225,31 @@ const index = () => {
         flex: 1,
       }}
     >
+      <Modal
+        transparent={true}
+        visible={showLoading}
+        animationType="fade"
+        onRequestClose={() => {
+          // console.log("attempt to close modal") 
+        }}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => {
+            //  console.log("attempt to close modal")
+          }}
+        >
+          <View style={styles.modalView}>
+            <Text style={{ color: 'black', fontSize: 16 }}>Loading Assistant</Text>
+            <LoaderKitView
+              style={{ width: 50, height: 50 }}
+              name={"BallSpinFadeLoader"}
+              animationSpeedMultiplier={1.0} // speed up/slow down animation, default: 1.0, larger is faster
+              color={"blue"} // Optional: color can be: 'red', 'green',... or '#ddd', '#ffffff',...
+            />
+          </View>
+        </Pressable>
+      </Modal>
       <Modal
         transparent={true}
         visible={showProcessingSyncData}

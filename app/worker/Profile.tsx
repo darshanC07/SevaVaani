@@ -184,13 +184,13 @@ const Profile = () => {
           id="normal-horizontal-line"
         ></View>
         <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 15 }}>
-          <View style={styles.profileOption}>
+          <TouchableOpacity style={styles.profileOption}>
             <Image
               source={require("../../assets/Profile/Choice.png")}
               style={styles.profileOptionIcon}
             />
-            <Text style={styles.profileOptionText}>My Booking</Text>
-          </View>
+            <Text style={styles.profileOptionText}>My Works</Text>
+          </TouchableOpacity>
           <View style={styles.profileOption}>
             <Image
               source={require("../../assets/Profile/Communication.png")}

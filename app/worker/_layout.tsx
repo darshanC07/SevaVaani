@@ -12,6 +12,8 @@ export default function Layout() {
       <Stack.Screen name="ChatScreen" options={{ headerShown: false }} />
       <Stack.Screen name="MyWorks" options={{ headerShown: false }} />
       <Stack.Screen name="ChatList" options={{ headerShown: false }} />
+      <Stack.Screen name="PricingPlansScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="PlanSuccessScreen" options={{ headerShown: false }} />
       {/* <Stack.Screen name="OTPScreen" options={{ headerShown: false }} />
       <Stack.Screen name="EmailScreen" options={{ headerShown: false }} /> */}
     </Stack>

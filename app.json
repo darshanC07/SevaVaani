@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "com.project.SevaVaani",
+    "scheme": "com.project.sevavaani",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

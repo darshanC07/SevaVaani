@@ -128,41 +128,37 @@ const PricingPlansScreen = () => {
                 { scale },
                 { rotate },
               ],
-              shadowColor: item.itemColor,
-              shadowOpacity: 0.5,
-              shadowRadius: 25,
+              shadowColor: '#000',
+              shadowOpacity: 0.2,
+              shadowRadius: 15,
             },
           ]}
         >
           <LinearGradient
-            colors={['#1E293B', '#0F172A']}
+            colors={['rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.04)']}
             style={styles.cardGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.cardContent}>
               <View style={styles.topSection}>
-                <View style={[styles.planBadge, { backgroundColor: item.itemColor + '30' }]}>
-                  <Text style={[styles.planBadgeText, { color: item.itemColor }]}>{item.tagline}</Text>
-                </View>
-                <Text style={styles.largeTitle}>{item.title}</Text>
+                <Text style={styles.cardTitle}>{item.title} Plan</Text>
               </View>
 
               <View style={styles.benefitsList}>
                 {item.benefits.map((benefit, i) => (
                   <View key={`benefit-${index}-${i}`} style={styles.benefitItem}>
-                    <Ionicons name="checkmark-done-circle" size={22} color={item.itemColor} style={{ marginRight: 12 }} />
+                    <View style={styles.bulletPoint} />
                     <Text style={styles.benefitLabel}>{benefit}</Text>
                   </View>
                 ))}
               </View>
 
-              <View style={[styles.pricingFooter, { backgroundColor: '#FFFFFF12', borderColor: 'rgba(255,255,255,0.15)' }]}>
-                <View style={styles.priceContainer}>
-                   <Text style={[styles.currencySymbol, { color: item.itemColor }]}>₹</Text>
-                   <Text style={[styles.priceAmount, { color: '#FFFFFF' }]}>{item.price}</Text>
-                   <Text style={styles.pricePeriod}>{item.period}</Text>
-                </View>
+              <View style={styles.pricingSection}>
+                <View style={styles.pricingSeparator} />
+                <Text style={styles.priceHighlight}>
+                  ₹ {item.price}{item.period} after 3-day trial
+                </Text>
               </View>
             </View>
           </LinearGradient>
@@ -174,14 +170,27 @@ const PricingPlansScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={['#0F172A', '#1E293B', '#0F172A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#3B3299', '#2D2675', '#1E1B4B']} style={StyleSheet.absoluteFill} />
       
+      {/* Top Left Glow Orb */}
+      <View style={styles.glowOrbContainer}>
+        <LinearGradient
+          colors={['#FDE68A', 'transparent']}
+          style={styles.glowOrb}
+        />
+      </View>
+
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={styles.titleHeadline}>UPGRADE NOW</Text>
-        <Text style={styles.titleSub}>Unlock premium features for your growth.</Text>
+        <View style={styles.headerTop}>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
+            <Ionicons name="close" size={32} color="#FFF" />
+          </TouchableOpacity>
+          <View />
+        </View>
+        <View style={styles.headerContent}>
+          <Text style={styles.titleHeadline}>Go Premium</Text>
+          <Text style={styles.titleSub}>No commitment. Cancel anytime.</Text>
+        </View>
       </View>
 
       <View style={styles.stackWrapper}>
@@ -228,12 +237,12 @@ const PricingPlansScreen = () => {
           onPress={() => router.push('/worker/PlanSuccessScreen')}
         >
           <LinearGradient
-            colors={['#4560F4', '#00C6FF']}
+            colors={['#FAE68E', '#FACC15']}
             style={styles.buttonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.buttonText}>ACTIVATE PLAN</Text>
+            <Text style={styles.buttonText}>Start Plan</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -246,54 +255,68 @@ export default PricingPlansScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#1E1B4B',
+  },
+  glowOrbContainer: {
+    position: 'absolute',
+    top: -100,
+    left: -150,
+    width: 400,
+    height: 400,
+  },
+  glowOrb: {
+    flex: 1,
+    borderRadius: 200,
+    opacity: 0.5,
   },
   header: {
     paddingHorizontal: 25,
-    marginTop: 20,
+    marginTop: 10,
   },
-  backBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    backgroundColor: '#1E293B',
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  restoreText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+    opacity: 0.9,
+  },
+  headerContent: {
+    alignItems: 'center',
   },
   titleHeadline: {
-    fontSize: 34,
-    fontWeight: '900',
+    fontSize: 32,
+    fontWeight: '700',
     color: '#FFF',
-    letterSpacing: 2,
+    letterSpacing: 0.5,
   },
   titleSub: {
-    fontSize: 15,
-    color: '#94A3B8',
-    marginTop: 5,
+    fontSize: 18,
+    color: '#FFF',
+    marginTop: 8,
     fontWeight: '400',
+    opacity: 0.8,
   },
   stackWrapper: {
     flex: 1,
     justifyContent: 'center',
   },
   cardWrapper: {
-    borderRadius: 45,
+    borderRadius: 30,
     overflow: 'hidden',
-    elevation: 25,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    backgroundColor: '#1E293B',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.12)',
     position: 'absolute',
   },
   cardGradient: {
@@ -302,67 +325,52 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
-    justifyContent: 'space-between',
   },
   topSection: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 30,
   },
-  planBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 14,
-    marginBottom: 10,
-  },
-  planBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  largeTitle: {
-    fontSize: 38,
-    fontWeight: '900',
+  cardTitle: {
+    fontSize: 34,
+    fontWeight: '700',
     color: '#FFF',
   },
   benefitsList: {
-    marginVertical: 15,
+    marginVertical: 10,
+    paddingHorizontal: 10,
   },
   benefitItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 15,
+  },
+  bulletPoint: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FACC15',
+    marginRight: 15,
   },
   benefitLabel: {
-    fontSize: 18,
-    color: '#E2E8F0',
+    fontSize: 19,
+    color: '#FFF',
+    fontWeight: '500',
+  },
+  pricingSection: {
+    marginTop: 'auto',
+    alignItems: 'center',
+  },
+  pricingSeparator: {
+    width: '100%',
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginBottom: 25,
+  },
+  priceHighlight: {
+    fontSize: 22,
+    color: '#FFF',
     fontWeight: '600',
-  },
-  pricingFooter: {
-    marginTop: 20,
-    padding: 20,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-  },
-  currencySymbol: {
-    fontSize: 30,
-    fontWeight: '700',
-    marginRight: 5,
-  },
-  priceAmount: {
-    fontSize: 60,
-    fontWeight: '900',
-  },
-  pricePeriod: {
-    fontSize: 20,
-    color: '#94A3B8',
-    marginLeft: 6,
-    fontWeight: '700',
+    textAlign: 'center',
   },
   dotsRow: {
     flexDirection: 'row',
@@ -375,11 +383,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   dotActive: {
-    backgroundColor: '#4560F4',
-    width: 32,
+    backgroundColor: '#FFF',
+    width: 10,
   },
   dotInactive: {
-    backgroundColor: '#334155',
+    backgroundColor: '#FFF',
+    opacity: 0.3,
     width: 10,
   },
   footerAction: {
@@ -387,14 +396,14 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   primaryButton: {
-    height: 58,
-    borderRadius: 29,
+    height: 65,
+    borderRadius: 32,
     overflow: 'hidden',
-    elevation: 8,
-    shadowColor: '#4560F4',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
   },
   buttonGradient: {
     flex: 1,
@@ -402,9 +411,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 2,
+    color: '#2D2675',
+    fontSize: 22,
+    fontWeight: '700',
   },
 });

@@ -36,11 +36,11 @@ const CompletionQRModal: React.FC<CompletionQRModalProps> = ({
 }) => {
   console.log("Generating QR for:", { workerId, workerName, jobId, clientName, clientId });
   const qrData = JSON.stringify({
-    workerId,
-    workerName,
-    jobId,
-    clientName,
-    clientId
+    workerId: workerId,
+    workerName: workerName,
+    jobId: jobId,
+    clientName: clientName,
+    clientId: clientId
   });
   const icon = require('../assets/favicon.png');
   const base64Logo = Image.resolveAssetSource(icon).uri;

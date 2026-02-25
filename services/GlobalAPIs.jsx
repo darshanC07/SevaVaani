@@ -257,3 +257,13 @@ export const fetchOngoingJobs = async (WORKER_ID, lang) => {
     return null;
   }
 };
+
+export const getChatList = async (WORKER_ID) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/get_chat_list/worker/${WORKER_ID}`);
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch chat list:", err);
+    return null;
+  }
+};

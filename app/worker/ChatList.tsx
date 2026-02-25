@@ -18,11 +18,15 @@ import NavBar from "@/components/NavBar";
 import { useRouter } from "expo-router";
 import { getUserId } from "@/utils/AsyncStorageUtils";
 import { getChatList } from "@/services/GlobalAPIs";
+import { useTranslation } from "react-i18next";
 
 const ChatList = () => {
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   const router = useRouter();
+
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language.toLocaleLowerCase();
 
   const [search, setSearch] = useState("");
   const [chatList, setChatList] = useState([]);
@@ -62,7 +66,7 @@ const ChatList = () => {
         return;
       }
       try {
-        const response = await getChatList(userId);
+        const response = await getChatList(userId,currentLanguage);
         if (response) {
           if (response.chats.length > 0) {
             const filteredUsers = response.chats?.filter((item) =>
@@ -82,6 +86,18 @@ const ChatList = () => {
     fetchChatUsers();
 
   }, []);
+
+  function formatTime(timestamp) {
+      const date = new Date(timestamp);
+  
+      let hours = date.getHours();
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+      const ampm = hours >= 12 ? 'am' : 'pm';
+      hours = hours % 12 || 12; // Convert 24h → 12h format
+  
+      return `${hours}:${minutes} ${ampm}`;
+    }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F6FA" }}>
@@ -115,7 +131,6 @@ const ChatList = () => {
           keyboardShouldPersistTaps="handled"
         >
           {chatList.length > 0 && chatList.map((item) => {
-            const time = new Date(item.last_seen)
             return (
               <TouchableOpacity key={item.client_id} style={styles.card} onPress={() => router.push({
                 pathname: '/worker/ChatScreen',
@@ -158,7 +173,7 @@ const ChatList = () => {
                   </View>
                 </View>
 
-                <Text style={styles.time}>{time.toString()}</Text>
+                <Text style={styles.time}>{formatTime(item.last_seen)}</Text>
               </TouchableOpacity>
             )
           })}

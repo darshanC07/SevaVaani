@@ -24,7 +24,7 @@ const Profile = () => {
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
-  async function handleLogOut(){
+  async function handleLogOut() {
     try {
       await AsyncStorage.removeItem('userId');
       await AsyncStorage.removeItem('name');
@@ -32,7 +32,7 @@ const Profile = () => {
       router.replace('/login');
     } catch (error) {
       console.error('Error logging out:', error);
-      Alert.alert('Logout Failed', 'An error occurred while logging out. Please try again.'); 
+      Alert.alert('Logout Failed', 'An error occurred while logging out. Please try again.');
     }
   }
 
@@ -136,41 +136,44 @@ const Profile = () => {
               lucas12@gmail.com
             </Text>
           </View>
-          <LinearGradient
-            colors={["#EF9F44", "#FAE0C9"]}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              width: "50%",
-              justifyContent: "center",
-              padding: 5,
-              borderColor: "black",
-              borderWidth: 1,
-              borderRadius: 10,
-            }}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <TouchableOpacity
+            style={{ width: "50%" }}
+            onPress={() => router.push('/worker/PricingPlansScreen')}
           >
-            <Image
-              source={require("../../assets/Profile/verified.png")}
-              style={{ width: 20, height: 20, marginLeft: 10 }}
-            />
-
-            <View
+            <LinearGradient
+              colors={["#EF9F44", "#FAE0C9"]}
               style={{
-                flex: 1,
-                justifyContent: "center",
+                flexDirection: "row",
                 alignItems: "center",
+                gap: 5,
+                justifyContent: "center",
+                padding: 5,
+                borderColor: "black",
+                borderWidth: 1,
+                borderRadius: 10,
               }}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
             >
-              <Text
-                style={{ color: "black", fontSize: 14, fontWeight: "bold" }}
+              <Image
+                source={require("../../assets/Profile/verified.png")}
+                style={{ width: 20, height: 20, marginLeft: 10 }}
+              />
+
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
-                Standard member
-              </Text>
-            </View>
-          </LinearGradient>
+                <Text
+                  style={{ color: "black", fontSize: 14, fontWeight: "bold" }}
+                >
+                  Standard member
+                </Text>
+              </View>
+            </LinearGradient></TouchableOpacity>
         </View>
         <View
           style={{

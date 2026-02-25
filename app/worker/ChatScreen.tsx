@@ -15,7 +15,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { createChat, getMessages, getMessagesSince, sendMessage, updateLastSeen } from "../../services/GlobalAPIs";
+import { createChat, getMessages, getMessagesSince, sendMessage, updateLastSeen, testPostRequest } from "../../services/GlobalAPIs";
 import { getUserId } from "../../utils/AsyncStorageUtils";
 
 interface Message {
@@ -86,30 +86,51 @@ const ChatScreen = () => {
 
   const initializeChat = async () => {
     try {
+      console.log("🚀 Worker ChatScreen: Starting initialization...");
       setIsLoading(true);
       const userId = await getUserId();
       if (!userId) {
+        console.log("❌ Worker ChatScreen: No user ID, redirecting to login");
         router.replace('/login');
         return;
       }
 
+      console.log("👤 Worker ChatScreen: Got user ID:", userId);
       setCurrentUserId(userId);
 
       const actualClientId = clientId || 'mockClientId123';
+      console.log("👥 Worker ChatScreen: Using client ID:", actualClientId);
       setClientId(actualClientId);
 
+      console.log("👁️ Worker ChatScreen: Updating last seen...");
       updateLastSeen(userId).catch((error) => {
         console.error("Update last seen error:", error);
       });
+      console.log("✅ Worker ChatScreen: Updated last seen");
 
+      console.log("💬 Worker ChatScreen: Creating chat...");
+      
+      // Test POST request first
+      console.log("🧪 Worker ChatScreen: Testing POST request...");
+      try {
+        await testPostRequest();
+        console.log("🧪 Worker ChatScreen: POST test successful");
+      } catch (error) {
+        console.error("🧪 Worker ChatScreen: POST test failed:", error);
+      }
+      
       const chatResponse = await createChat(actualClientId, userId);
       const currentChatId = chatResponse.chat_id;
+      console.log("✅ Worker ChatScreen: Chat created with ID:", currentChatId);
       setChatId(currentChatId);
 
+      console.log("📨 Worker ChatScreen: Loading messages...");
       await loadMessages(currentChatId);
+      console.log("✅ Worker ChatScreen: Messages loaded");
     } catch (error) {
-      console.error('Error initializing chat:', error);
+      console.error('❌ Worker ChatScreen: Error initializing chat:', error);
     } finally {
+      console.log("🏁 Worker ChatScreen: Initialization complete, setting loading to false");
       setIsLoading(false);
     }
   };
@@ -128,6 +149,19 @@ const ChatScreen = () => {
   const refreshMessagesSince = async (currentChatId: string) => {
     try {
       const since = lastMessageTimestamp || 0;
+      console.log("🔄 ChatScreen refreshMessagesSince: chatId=", currentChatId, "since=", since);
+      
+      // Validate parameters before making request
+      if (!currentChatId || currentChatId === 'undefined' || currentChatId === 'null') {
+        console.error("❌ ChatScreen refreshMessagesSince: Invalid chatId:", currentChatId);
+        return;
+      }
+      
+      if (!since || since === 0) {
+        console.error("❌ ChatScreen refreshMessagesSince: Invalid timestamp:", since);
+        return;
+      }
+      
       const response = await getMessagesSince(currentChatId, since);
       const incoming = response.messages || [];
       if (incoming.length === 0) return;
@@ -139,6 +173,7 @@ const ChatScreen = () => {
       });
     } catch (error) {
       console.error('Error refreshing messages:', error);
+      // Don't retry immediately - let the polling interval handle it
     }
   };
 

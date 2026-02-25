@@ -118,6 +118,8 @@ const SendRequest = () => {
               <Text style={styles.callText}>📞 Call User</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.msgBtn} onPress={() => {
+              console.log("📱 Message button clicked!");
+              console.log("📱 Navigating to ChatScreen with params:", { clientId: job?.user_id, clientName: client?.name });
               router.push({
                 pathname: '/worker/ChatScreen',
                 params: { clientId: job?.user_id, clientName: client?.name }

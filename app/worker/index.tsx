@@ -8,6 +8,8 @@ import {
   Image,
   TextInput,
   ScrollView,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
@@ -18,8 +20,9 @@ import BottomNavBar from "../../components/BottomNavBar";
 import WorkerJobCard from "../../components/WorkerJobCard";
 import { getUserId } from "../../utils/AsyncStorageUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchAllJobs } from "@/services/GlobalAPIs";
+import { fetchAllJobs, createRazorpayOrder, verifyRazorpayPayment } from "@/services/GlobalAPIs";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
+import RazorpayCheckout from "react-native-razorpay";
 
 const index = () => {
   const router = useRouter();
@@ -32,6 +35,9 @@ const index = () => {
   const [email, setEmail] = useState<string | null>('');
 
   const [isJobDataLoading, setIsJobDataLoading] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+
+  const PAYMENT_AMOUNT_RUPEES = 100;
 
   async function getJobs() {
     setIsJobDataLoading(true);
@@ -66,6 +72,47 @@ const index = () => {
     }
     fetchUserId();
   }, [])
+
+  const handlePay = async () => {
+    if (isPaying) return;
+    setIsPaying(true);
+    try {
+      const order = await createRazorpayOrder(PAYMENT_AMOUNT_RUPEES, null);
+
+      const options: any = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.order_id,
+        name: "SevaVaani",
+        description: "Test Payment",
+        prefill: {
+          name: name || "User",
+          email: email || ""
+        },
+        theme: { color: "#4560F4" }
+      };
+
+      const data = await RazorpayCheckout.open(options);
+
+      const verification = await verifyRazorpayPayment(
+        order.order_id,
+        data.razorpay_payment_id,
+        data.razorpay_signature
+      );
+
+      if (verification?.status === "success") {
+        Alert.alert("Payment successful", "Your test payment was verified.");
+      } else {
+        Alert.alert("Payment verification failed", "Please try again.");
+      }
+    } catch (error: any) {
+      Alert.alert("Payment failed", error?.message || "Something went wrong.");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -78,14 +125,26 @@ const index = () => {
       <View style={styles.mainContainer}>
         <View style={styles.topContainer}>
           <View style={styles.horizontalLine} />
-          <View style={styles.statusButton}>
-            <Text style={styles.statusText}>Online</Text>
-            <View style={styles.statusIcon}>
-              <Image
-                source={require("../../assets/tools.png")}
-                style={{ width: 20, height: 20 }}
-              />
+          <View style={styles.topRow}>
+            <View style={styles.statusButton}>
+              <Text style={styles.statusText}>Online</Text>
+              <View style={styles.statusIcon}>
+                <Image
+                  source={require("../../assets/tools.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </View>
             </View>
+            <TouchableOpacity
+              style={[styles.payButton, isPaying ? styles.payButtonDisabled : null]}
+              activeOpacity={0.85}
+              onPress={handlePay}
+              disabled={isPaying}
+            >
+              <Text style={styles.payButtonText}>
+                {isPaying ? "Processing..." : `Pay ₹${PAYMENT_AMOUNT_RUPEES}`}
+              </Text>
+            </TouchableOpacity>
           </View>
           <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
             <Text style={{ color: "white", fontSize: 15 }}>
@@ -199,6 +258,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
   },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 6,
+  },
   searchBar: {
     width: "90%",
     height: 45,
@@ -219,6 +285,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
+  },
+  payButton: {
+    backgroundColor: "#0ca45b",
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "black",
+  },
+  payButtonDisabled: {
+    opacity: 0.6,
+  },
+  payButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
   contentContainer: {
     width: "94%",

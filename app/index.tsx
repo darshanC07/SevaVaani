@@ -82,18 +82,34 @@ export default function Index() {
         contextObj.setJobs((prevJobs) => [...prevJobs, data]);
       });
 
-      es.addEventListener("connected", (event: any) => {
+      es.addEventListener("open", (event: any) => {
         const data = JSON.parse(event.data);
         console.log("event connected:", data);
       });
 
-      es.onerror = (err: any) => {
-        console.log("SSE error", err);
-      };
+      es.addEventListener("new_message" as any, (event: any) => {
+        const data = JSON.parse(event.data);
+        console.log("Received new message event:", data);
+        
+        // Update global context with new message
+        if (data.data && data.data.chat_id) {
+          contextObj.addNewMessage({
+            message_id: data.data.message_id,
+            from: data.data.from,
+            to: data.data.to,
+            msg: data.data.msg,
+            timestamp: data.data.timestamp
+          });
+        }
+      });
 
-      es.onopen = () => {
+      es.addEventListener("error", (err: any) => {
+        console.log("SSE error", err);
+      });
+
+      es.addEventListener("open", () => {
         console.log("SSE connected");
-      };
+      });
 
     };
 

@@ -19,8 +19,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useTranslation } from 'react-i18next';
 const Profile = () => {
   const router = useRouter();
+    const { t } = useTranslation();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
@@ -44,14 +46,15 @@ const Profile = () => {
         flex: 1,
       }}
     >
-      <View
+      <Image
         style={{
           backgroundColor: "#4560F4",
           width: "100%",
           height: 250,
           position: "absolute",
         }}
-      ></View>
+        source={require("../../assets/Profile/profileBg1.jpg")}
+      />
       <View
         id="topBar"
         style={{
@@ -170,7 +173,7 @@ const Profile = () => {
                 <Text
                   style={{ color: "black", fontSize: 14, fontWeight: "bold" }}
                 >
-                  Standard member
+                   {t('profile.standardMember')}
                 </Text>
               </View>
             </LinearGradient></TouchableOpacity>
@@ -192,21 +195,21 @@ const Profile = () => {
               source={require("../../assets/Profile/Choice.png")}
               style={styles.profileOptionIcon}
             />
-            <Text style={styles.profileOptionText}>My Works</Text>
+            <Text style={styles.profileOptionText}>{t('profile.myBooking')}</Text>
           </TouchableOpacity>
           <View style={styles.profileOption}>
             <Image
               source={require("../../assets/Profile/Communication.png")}
               style={styles.profileOptionIcon}
             />
-            <Text style={styles.profileOptionText}>Chat History</Text>
+            <Text style={styles.profileOptionText}>{t('profile.chatHistory')}</Text>
           </View>
           <View style={styles.profileOption}>
             <Image
               source={require("../../assets/Profile/Headset.png")}
               style={styles.profileOptionIcon}
             />
-            <Text style={styles.profileOptionText}>Help & Support</Text>
+            <Text style={styles.profileOptionText}>{t('profile.helpAndSupport')}</Text>
           </View>
         </View>
         <View style={{
@@ -216,40 +219,40 @@ const Profile = () => {
           <ScrollView>
             <TouchableOpacity style={styles.settingBar} onPress={()=>router.push("/worker/WalletScreen")}>
               <Ionicons name="wallet-outline" size={24} color="black" />
-              <Text style={styles.settingText}>Wallet</Text>
+              <Text style={styles.settingText}>{t('profile.wallet')}</Text>
             </TouchableOpacity>
             <View style={styles.settingBar}>
               <FontAwesome name="star-o" size={24} color="black" />
-              <Text style={styles.settingText}>My Ratings</Text>
+              <Text style={styles.settingText}>{t('profile.myRatings')}</Text>
             </View>
             <View style={styles.settingBar}>
               <Ionicons name="location-outline" size={24} color="black" />
-              <Text style={styles.settingText}>Manage Address</Text>
+              <Text style={styles.settingText}>{t('profile.manageAddress')}</Text>
             </View>
             <View style={styles.settingBar}>
               <Ionicons name="settings-outline" size={24} color="black" />
-              <Text style={styles.settingText}>Setting</Text>
+              <Text style={styles.settingText}>{t('profile.setting')}</Text>
             </View>
             <View style={styles.settingBar}>
               <View style={{ width: 24, height: 24, borderWidth: 1, borderColor: 'black', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ fontSize: 14, fontWeight: '500' }}>SV</Text>
               </View>
-              <Text style={styles.settingText}>About Us</Text>
+              <Text style={styles.settingText}>{t('profile.aboutUs')}</Text>
             </View>
             <View style={styles.referAndEarnSection}>
               <View style={{ alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', width: '95%' }}>
                 <View style={{ width: '70%' }}>
-                  <Text style={{ fontWeight: 'bold' }}>Refer & earn ₹100 </Text>
-                  <Text>Get ₹100 when your friend completes their first booking</Text>
+                  <Text style={{ fontWeight: 'bold' }}>{t('profile.referAndEarn')} </Text>
+                  <Text>{t('profile.referAndEarnDesc')}</Text>
                 </View>
                 <Image source={require('../../assets/Profile/Gift.png')} style={{ width: 50, height: 50 }} />
               </View>
               <View style={{ backgroundColor: 'rgba(114, 16, 234, 0.7)', paddingVertical: 5, paddingHorizontal: 15, borderRadius: 5, borderWidth: 1, borderColor: 'black', alignSelf: 'flex-start', marginLeft: 10, marginTop: 10 }}>
-                <Text style={{ fontWeight: '500', color: "white" }}>Refer Now</Text>
+                <Text style={{ fontWeight: '500', color: "white" }}>{t('profile.referNow')}</Text>
               </View>
             </View>
             <TouchableOpacity style={{ width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 10, borderColor: 'black', borderWidth: 1, padding: 10, borderRadius: 10 }} onPress={handleLogOut}>
-              <Text style={{ color: 'red', fontSize: 20, fontWeight: '500' }}>Logout</Text>
+              <Text style={{ color: 'red', fontSize: 20, fontWeight: '500' }}>{t('common.logout')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

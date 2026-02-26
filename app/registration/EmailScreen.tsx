@@ -16,9 +16,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import config from "../../config.json";
 import { ActivityIndicator } from "react-native";
-
+import { useTranslation } from "react-i18next";
 const EmailScreen = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   const [uid, setUid] = useState<string | null>(null);
@@ -64,11 +65,11 @@ const EmailScreen = () => {
           params: { uid: data.uid,email : email },
         });
       } else {
-        alert(data.error || "Failed to create user");
+        alert(data.error || t('registration.failedToCreateUser'));
       }
     } catch (error) {
       console.log("Error creating user:", error);
-      alert("Something went wrong");
+      alert(t('common.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
@@ -124,12 +125,12 @@ const EmailScreen = () => {
           style={[styles.content, { height: height - 170, paddingTop: "25%" }]}
         >
           <View style={styles.textContainer}>
-            <Text style={styles.heading}>Create User</Text>
+            <Text style={styles.heading}>{t('registration.createUser')}</Text>
           </View>
 
           <View style={styles.detailContainer}>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLable}>Email</Text>
+              <Text style={styles.inputLable}>{t('registration.email')}</Text>
               <TextInput
                 style={styles.inputArea}
                 value={email}
@@ -137,7 +138,7 @@ const EmailScreen = () => {
               ></TextInput>
             </View>
             <View style={styles.inputContainer}>
-              <Text style={[styles.inputLable, { width: 90 }]}>Password</Text>
+              <Text style={[styles.inputLable, { width: 90 }]}>{t('registration.password')}</Text>
               <TextInput
                 style={[styles.inputArea, { paddingRight: 50 }]}
                 value={password}
@@ -154,13 +155,13 @@ const EmailScreen = () => {
               disabled={loading}
               onPress={() => {
                 if (email && password) createUser(email, password);
-                else alert("Please enter email and password");
+                else alert(t('registration.enterEmailAndPassword'));
               }}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.continueText}>Continue</Text>
+                <Text style={styles.continueText}>{t('common.continue')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -168,7 +169,7 @@ const EmailScreen = () => {
 
         <View style={[styles.footer, { display: "none" }]}>
           <TouchableOpacity style={styles.continueButton} activeOpacity={0.9}>
-            <Text style={styles.continueText}>Continue</Text>
+            <Text style={styles.continueText}>{t('common.continue')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

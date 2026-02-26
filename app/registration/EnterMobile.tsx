@@ -13,10 +13,12 @@ import {
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const EnterMobile = () => {
   const { OTPRequester } = NativeModules;
   const router = useRouter();
+  const { t } = useTranslation();
   const { uid ,email} = useLocalSearchParams();
   const [countryCode, setCountryCode] = useState("91");
   const [mobile, setMobile] = useState("");
@@ -29,7 +31,7 @@ const EnterMobile = () => {
       if(text === "success"){
         router.push({pathname:"/registration/OTPScreen/", params:{number:mobile,uid:uid,email:email}});
       } else{
-        alert("Failed to request OTP. Please try again.");
+        alert(t('registration.failedToRequestOTP'));
       }
     }
   }
@@ -76,9 +78,9 @@ const EnterMobile = () => {
         style={[styles.content, { height: height - 170, paddingTop: "25%" }]}
       >
         <View style={styles.textContainer}>
-          <Text style={styles.heading}>Verify your mobile number</Text>
+           <Text style={styles.heading}>{t('registration.verifyMobileNumber')}</Text>
           <Text style={styles.desc}>
-            We’ll send a one-time code to this number
+            {t('registration.sendOneTimeCode')}
           </Text>
         </View>
 
@@ -95,7 +97,7 @@ const EnterMobile = () => {
               onChangeText={(t) => setMobile(t.replace(/[^0-9]/g, ""))}
               keyboardType="phone-pad"
               maxLength={10}
-              placeholder="Enter mobile number"
+              placeholder={t('registration.enterMobileNumber')}
               placeholderTextColor="#999"
               style={styles.mobileInput}
               returnKeyType="done"
@@ -112,7 +114,7 @@ const EnterMobile = () => {
             handleContinue();
           }}
         >
-          <Text style={styles.continueText}>Continue</Text>
+<Text style={styles.continueText}>{t('common.continue')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

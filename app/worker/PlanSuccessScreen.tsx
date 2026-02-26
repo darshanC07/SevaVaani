@@ -51,7 +51,9 @@ const PlanSuccessScreen = () => {
 
   const handleContinue = () => {
     // Navigate back to profile
-    router.replace('/worker/Profile');
+    // router.replace('/worker/Profile');
+    router.back()
+    router.back()
   };
 
   return (

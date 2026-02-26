@@ -11,9 +11,11 @@ import {
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const index = () => {
   const router = useRouter()
+  const { t } = useTranslation();
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   return (
@@ -63,10 +65,9 @@ const index = () => {
         }}
       >
         <View style={styles.textContainer}>
-          <Text style={styles.heading}>Select a Role</Text>
+          <Text style={styles.heading}>{t('registration.selectRole')}</Text>
           <Text style={styles.desc}>
-            Start working or hiring with direct communication. We make the
-            process simple and fast.
+            {t('registration.selectRoleDesc')}
           </Text>
         </View>
         <View>
@@ -79,10 +80,10 @@ const index = () => {
             </View>
             <View style={styles.roleContainer}>
               <Text style={{ fontWeight: "bold", fontSize: 18 }}>
-                Recruiter
+                {t('registration.recruiter')}
               </Text>
               <Text>
-                Hire skilled workers directly and fill your jobs faster.
+                {t('registration.recruiterDesc')}
               </Text>
             </View>
           </TouchableOpacity>
@@ -94,10 +95,9 @@ const index = () => {
               />
             </View>
             <View style={styles.roleContainer}>
-              <Text style={{ fontWeight: "bold", fontSize: 18 }}>Worker</Text>
+              <Text style={{ fontWeight: "bold", fontSize: 18 }}>{t('registration.worker')}</Text>
               <Text>
-                Discover jobs that match your skills and connect with recruiters
-                easily.
+                {t('registration.workerDesc')}
               </Text>
             </View>
           </TouchableOpacity>
@@ -105,7 +105,7 @@ const index = () => {
       </View>
       <View style={styles.footer}>
         <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={()=>router.push("registration/EnterMobile")}>
-          <Text style={styles.continueText}>Continue</Text>
+          <Text style={styles.continueText}>{t('common.continue')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

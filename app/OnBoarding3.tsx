@@ -2,8 +2,10 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 const OnBoarding3 = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ alignItems: "flex-end" }}>
@@ -15,11 +17,10 @@ const OnBoarding3 = () => {
           style={styles.image}
         />
         <Text style={{ fontSize: 26, textAlign: "center" }}>
-          Interact by Your Voice
+          {t('onboarding.screen3Title')}
         </Text>
         <Text style={{ textAlign: "center", color: "#757575" }}>
-          Just speak up your requirements and chill, our assistant will talk
-          with you, hands-free
+          {t('onboarding.screen3Desc')}
         </Text>
       </View>
       <View style={{flexDirection:'row',justifyContent:"center",gap:15}}>
@@ -27,13 +28,13 @@ const OnBoarding3 = () => {
           style={styles.button}
           onPress={() => router.push("/OnBoarding3")}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonText}>{t('common.login')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.push("/registration/")}
         >
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={styles.buttonText}>{t('common.register')}</Text>
         </TouchableOpacity>
       </View>
       <View

@@ -16,9 +16,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import config from "../../config.json";
 import SuccessModal from "@/components/SuccessModal";
 import ErrorModal from "@/components/ErrorModal";
+import { useTranslation } from "react-i18next";
 
 const OTPScreen = () => {
   const router = useRouter();
+  const { t } = useTranslation();
   const { number, uid,email } = useLocalSearchParams();
   const [otp, setOtp] = useState("");
   const otpInputRef = useRef<TextInput>(null);
@@ -104,8 +106,8 @@ const OTPScreen = () => {
         style={[styles.content, { height: height - 170, paddingTop: "25%" }]}
       >
         <View style={styles.textContainer}>
-          <Text style={styles.heading}>Enter verification code</Text>
-          <Text style={styles.desc}>We have sent you a 4-digit code on</Text>
+          <Text style={styles.heading}>{t('registration.enterVerificationCode')}</Text>
+          <Text style={styles.desc}>{t('registration.sentFourDigitCode')}</Text>
           <Text style={{ fontSize: 20, marginTop: 10, fontWeight: "bold" }}>
             +91 {number}
           </Text>
@@ -153,7 +155,7 @@ const OTPScreen = () => {
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.continueButton} activeOpacity={0.9} onPress={() => handleVerifyOtp()}>
-          <Text style={styles.continueText}>Continue</Text>
+          <Text style={styles.continueText}>{t('common.continue')}</Text>
         </TouchableOpacity>
       </View>
       <SuccessModal isVisible={isSuccessModal} toggleModal={() => setSuccessModal(!isSuccessModal)} title="Success!" message={successMsg} handleOk={() => {

@@ -245,7 +245,6 @@ export const syncData = async (WORKER_ID, DATA) => {
   }
 };
 
-
 export const fetchOngoingJobs = async (WORKER_ID, lang) => {
   try {
     const response = await axios.get(
@@ -258,12 +257,26 @@ export const fetchOngoingJobs = async (WORKER_ID, lang) => {
   }
 };
 
-export const getChatList = async (WORKER_ID,lang) => {
+export const getChatList = async (WORKER_ID, lang) => {
   try {
-    const response = await axios.get(`${BASE_URL}/${lang}/get_chat_list/worker/${WORKER_ID}`);
+    const response = await axios.get(
+      `${BASE_URL}/${lang}/get_chat_list/worker/${WORKER_ID}`,
+    );
     return response.data;
   } catch (err) {
     console.error("Failed to fetch chat list:", err);
+    return null;
+  }
+};
+
+export const getWalletDetails = async (WORKER_ID, lang) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/${lang}/wallet/worker/${WORKER_ID}`,
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch wallet details:", err);
     return null;
   }
 };

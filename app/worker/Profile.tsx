@@ -214,10 +214,10 @@ const Profile = () => {
           height: '54%',
         }}>
           <ScrollView>
-            <View style={styles.settingBar}>
+            <TouchableOpacity style={styles.settingBar} onPress={()=>router.push("/worker/WalletScreen")}>
               <Ionicons name="wallet-outline" size={24} color="black" />
               <Text style={styles.settingText}>Wallet</Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.settingBar}>
               <FontAwesome name="star-o" size={24} color="black" />
               <Text style={styles.settingText}>My Ratings</Text>

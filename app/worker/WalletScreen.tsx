@@ -43,9 +43,9 @@ const Wallet = () => {
       const response = await getWalletDetails(userId, language);
       if (response) {
         console.log("Wallet details fetched successfully:", response);
-        transactions.push(...response.transactions);
-        setTransactionsList(transactions);
-        // setTransactionsList(response.transactions);
+        // transactions.push(...response.transactions);
+        // setTransactionsList(transactions);
+        setTransactionsList(response.transactions);
         setEarnings(response.earnings);
       }
     } catch (error) {

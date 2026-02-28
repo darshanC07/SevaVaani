@@ -1,99 +1,154 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { hangUpCall, joinCall } from '../../services/GlobalAPIs';
-import { getUserId } from '../../utils/AsyncStorageUtils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-const IncomingCall = () => {
-    const router = useRouter()
-    const [user, setUser] = useState<string | null>('');
-    const [name, setName] = useState<string | null>('');
-    const [email, setEmail] = useState<string | null>('');
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  Alert,
+} from "react-native";
+import { Audio } from "expo-av";
+import { useRouter, useSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
-    useEffect(() => {
-        const fetchUserId = async () => {
-            const userId = await getUserId();
-            console.log("Fetched User ID:", userId);
-            if (!userId) {
-                router.replace("/login");
-            }
-            const uname = await AsyncStorage.getItem("name");
-            const uemail = await AsyncStorage.getItem("email");
-            setUser(userId);
-            setName(uname);
-            setEmail(uemail);
-        }
-        fetchUserId();
-    }, [])
+const IncomingCallScreen: React.FC = () => {
+  const router = useRouter();
+  const { name: callerName } = useSearchParams();
+  const ringtone = useRef<Audio.Sound | null>(null);
 
-    const { caller_uid, caller_name } = useLocalSearchParams();
+  useEffect(() => {
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require("../../assets/ringtone.mp3"),
+          { shouldPlay: true, isLooping: true, volume: 1 }
+        );
+        ringtone.current = sound;
+      } catch (e) {
+        console.warn("failed to load ringtone", e);
+      }
+    })();
 
-    async function acceptCall(myself: string | null, Mname: string | null, anotherUser: string, Aname: string) {
-        const response = await joinCall(myself, Mname, anotherUser, Aname);
-        console.log("join call response : ", response);
+    return () => {
+      if (ringtone.current) {
+        ringtone.current.stopAsync().catch(() => {});
+        ringtone.current.unloadAsync().catch(() => {});
+      }
+    };
+  }, []);
+
+  const stopTone = async () => {
+    if (ringtone.current) {
+      await ringtone.current.stopAsync();
     }
+  };
 
-    return (
-        <SafeAreaProvider >
-            <SafeAreaView >
-                <View style={styles.bg}>
-                    <View style={styles.callerInfoAndStatus}>
-                        <Text style={[styles.text, { fontSize: 30, fontWeight: 'bold' }]}>
-                            {caller_name || 'Unknown Caller'}
-                        </Text>
-                        <Image
-                            source={{
-                                uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                    caller_name.toString()
-                                )}&background=random&color=0d1117&bold=true&font-size=0.5&length=1&size=128`,
-                            }}
-                            style={styles.avatar}
-                        />
-                        <Text style={styles.text}>
-                            Incoming voice call...
-                        </Text>
-                    </View>
-                    <View style={styles.callOptions}>
-                        <TouchableOpacity style={{ padding: 15, borderRadius: 50, borderColor: 'green', borderWidth: 2 }} onPress={() => acceptCall(user, name, caller_uid, caller_name)}>
-                            <MaterialIcons name="call" size={45} color="green" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{ padding: 15, borderRadius: 50, borderColor: 'red', borderWidth: 2 }} onPress={() => {
-                            hangUpCall(caller_uid.toString());
-                            router.back()
-                        }}>
-                            <MaterialIcons name="call-end" size={45} color="red" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </SafeAreaView>
-        </SafeAreaProvider >
-    )
-}
+  const onAccept = async () => {
+    await stopTone();
+    router.push("/worker/CallScreen");
+  };
 
-export default IncomingCall
+  const onReject = async () => {
+    await stopTone();
+    Alert.alert("Call ended", undefined, [
+      { text: "OK", onPress: () => router.back() },
+    ]);
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Incoming Call</Text>
+        <Text style={styles.caller}>{callerName ?? "Unknown"}</Text>
+      </View>
+
+      <View style={styles.avatarContainer}>
+        <View style={styles.avatarPlaceholder}>
+          <Ionicons name="person" size={60} color="#fff" />
+        </View>
+      </View>
+
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={[styles.button, styles.accept]}
+          onPress={onAccept}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="call" size={24} color="#fff" />
+          <Text style={styles.buttonText}>Accept</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.reject]}
+          onPress={onReject}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="call" size={24} color="#fff" />
+          <Text style={styles.buttonText}>Reject</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+export default IncomingCallScreen;
 
 const styles = StyleSheet.create({
-    bg: {
-        backgroundColor: '#222224',
-        height: '100%',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 50
-    },
-    text: {
-        color: 'white',
-    },
-    callerInfoAndStatus: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 25
-    },
-    avatar: { width: 120, height: 120, borderRadius: 80, },
-    callOptions: {
-        flexDirection: 'row',
-        width: '70%',
-        justifyContent: 'space-between',
-    }
-})
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  header: {
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 20,
+    color: "#bbb",
+    marginBottom: 8,
+  },
+  caller: {
+    fontSize: 32,
+    color: "#fff",
+    fontWeight: "700",
+  },
+  avatarContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  avatarPlaceholder: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttons: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-evenly",
+    paddingBottom: Platform.select({ ios: 40, android: 20 }),
+  },
+  button: {
+    width: 140,
+    paddingVertical: 16,
+    borderRadius: 40,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  accept: {
+    backgroundColor: "#4CAF50",
+  },
+  reject: {
+    backgroundColor: "#F44336",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+});

@@ -1,16 +1,18 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { hangUpCall, joinCall } from '../../services/GlobalAPIs';
 import { getUserId } from '../../utils/AsyncStorageUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio } from "expo-av";
 const IncomingCall = () => {
     const router = useRouter()
     const [user, setUser] = useState<string | null>('');
     const [name, setName] = useState<string | null>('');
     const [email, setEmail] = useState<string | null>('');
+    const ringtone = useRef<Audio.Sound | null>(null);
 
     useEffect(() => {
         const fetchUserId = async () => {
@@ -24,15 +26,44 @@ const IncomingCall = () => {
             setUser(userId);
             setName(uname);
             setEmail(uemail);
+            try {
+                const { sound } = await Audio.Sound.createAsync(
+                    require("../../assets/ringtone.mp3"),
+                    { shouldPlay: true, isLooping: true, volume: 1 }
+                );
+                ringtone.current = sound;
+            } catch (e) {
+                console.warn("failed to load ringtone", e);
+            }
         }
         fetchUserId();
+        return () => {
+            if (ringtone.current) {
+                ringtone.current.stopAsync().catch(() => { });
+                ringtone.current.unloadAsync().catch(() => { });
+            }
+        };
     }, [])
 
     const { caller_uid, caller_name } = useLocalSearchParams();
 
+    const stopTone = async () => {
+        if (ringtone.current) {
+            await ringtone.current.stopAsync();
+        }
+    };
+
+    const onReject = async () => {
+        await stopTone();
+        await hangUpCall(caller_uid.toString());
+        router.back();
+    };
+
     async function acceptCall(myself: string | null, Mname: string | null, anotherUser: string, Aname: string) {
+        await stopTone();
         const response = await joinCall(myself, Mname, anotherUser, Aname);
         console.log("join call response : ", response);
+
     }
 
     return (
@@ -59,10 +90,7 @@ const IncomingCall = () => {
                         <TouchableOpacity style={{ padding: 15, borderRadius: 50, borderColor: 'green', borderWidth: 2 }} onPress={() => acceptCall(user, name, caller_uid, caller_name)}>
                             <MaterialIcons name="call" size={45} color="green" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ padding: 15, borderRadius: 50, borderColor: 'red', borderWidth: 2 }} onPress={() => {
-                            hangUpCall(caller_uid.toString());
-                            router.back()
-                        }}>
+                        <TouchableOpacity style={{ padding: 15, borderRadius: 50, borderColor: 'red', borderWidth: 2 }} onPress={onReject}>
                             <MaterialIcons name="call-end" size={45} color="red" />
                         </TouchableOpacity>
                     </View>

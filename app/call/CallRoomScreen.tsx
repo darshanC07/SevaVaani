@@ -1,30 +1,89 @@
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native'
-import React, { useEffect } from 'react'
+import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Platform, Modal, Pressable } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useInitializeAgora } from './hooks'; // Logic stays the same
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { uploadRecording } from '@/services/GlobalAPIs';
+import { getUserId } from '@/utils/AsyncStorageUtils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CallRoomScreen = () => {
-  const { anotherUserId, anotherUserName, CN, channelToken } = useLocalSearchParams();
+  const { anotherUserId,anotherUserName, CN, channelToken } = useLocalSearchParams();
+  console.log("CallRoomScreen Params:", { anotherUserName, CN, channelToken });
   const router = useRouter();
-
+  const [transcriptionResult, setTranscriptionResult] = useState('');
+  const [user, setUser] = useState<string | null>('');
+  const [name, setName] = useState<string | null>('');
+  const [showTranscription, setShowTranscription] = useState(false);
   const {
+    getRecordingFilePath,
     isMute,
     joinSucceed,
     peerIds,
     join,
     leaveChannel,
     toggleIsMute,
+    toggleSpeaker,
+    setIsTranscribing
   } = useInitializeAgora();
 
+
+  const uploadAudioToServer = async () => {
+    setIsTranscribing(true);
+    try {
+      const recordingPath = await getRecordingFilePath();
+
+
+      const formData = new FormData();
+      formData.append('audio', {
+        uri: Platform.OS === 'android' ? `file://${recordingPath}` : recordingPath,
+        type: 'audio/wav',
+        name: 'recording.wav',
+      } as any);
+
+      formData.append("members", JSON.stringify({
+        user1_name: name,
+        user1_id: user,
+        user2_name: anotherUserName,
+        user2_id: anotherUserId
+      }));
+
+      // Send to your server
+      const response = await uploadRecording(formData);
+
+      console.log('Server Response:', response.data);
+      setTranscriptionResult(response.data.text || 'Transcription complete');
+    } catch (error) {
+      console.error('Failed to upload audio to server:', error);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+
+
   useEffect(() => {
+    // Only attempt to join if we have BOTH the channel name and the token
+    const fetchUserId = async () => {
+      const userId = await getUserId();
+      console.log("Fetched User ID:", userId);
+      if (!userId) {
+        router.replace("/login");
+      }
+      const uname = await AsyncStorage.getItem("name");
+      setUser(userId);
+      setName(uname);
+    }
     if (CN && channelToken) {
+
+      fetchUserId();
+      console.log("Attempting to join with token...");
       join(CN, channelToken);
     } else {
-      console.error("Receiver missing connection data:", { CN, channelToken });
+      console.error("Missing CN or Token:", { CN, channelToken });
     }
   }, [CN, channelToken]);
 
@@ -76,6 +135,7 @@ const CallRoomScreen = () => {
           </View>
         </View>
       </SafeAreaView>
+
     </SafeAreaProvider>
   )
 }
@@ -83,6 +143,38 @@ const CallRoomScreen = () => {
 export default CallRoomScreen
 
 const styles = StyleSheet.create({
+  loadingModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Add a semi-transparent background
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 30,
+    gap: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  headerText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
   bg: {
     backgroundColor: '#515152',
     flex: 1,

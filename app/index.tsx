@@ -91,13 +91,19 @@ export default function Index() {
         const data = JSON.parse(event.data);
         console.log("Received new job event:", data);
         contextObj.setJobs((prevJobs) => [...prevJobs, data]);
+        console.log("Job added to context:", data);
+        data["type"] = "new_job";
+        contextObj.setNotifications((prevNotifications) => [...prevNotifications, data]);
       });
 
       es.addEventListener("new_message", (event: any) => {
         const data = JSON.parse(event.data);
         console.log("Received new message event:", data.message);
         contextObj.setMessages((prevMessages) => [...prevMessages, data.message]);
-      });
+        if(data.message["to"]===uid){
+        data["type"] = "new_message";
+        contextObj.setNotifications((prevNotifications) => [...prevNotifications, data]);
+    }});
 
       es.addEventListener("connected", (event: any) => {
         const data = JSON.parse(event.data);
@@ -111,6 +117,9 @@ export default function Index() {
       es.onopen = () => {
         console.log("SSE connected");
       };
+
+      
+        
 
     };
 

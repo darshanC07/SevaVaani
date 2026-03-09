@@ -3,7 +3,7 @@ import NavBar from "@/components/NavBar";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useContext } from "react";
+import React, { use, useContext, useEffect } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -22,28 +22,145 @@ const Notifications = () => {
   const contextObj = useContext(GlobalStatesContext);
 
   const notifications = [
-    {
-      id: 1,
-      title: "Job Request Accepted",
-      desc: "Your plumber request has been accepted by Kishor Kumar",
-      time: "2 hours ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      title: "Service Completed",
-      desc: "Please rate your experience with the worker",
-      time: "Yesterday",
-      unread: false,
-    },
-    {
-      id: 3,
-      title: "New Offer Available",
-      desc: "Get 10% off on your next booking",
-      time: "2 days ago",
-      unread: false,
-    },
+    { "budget_max": "5", "budget_min": "1", "description": "Snabba", "duration": "5", "hi": { "budget_max": "5", "budget_min": "1", "description": "स्नब्बा", "d duration": "5", "job_details": "वा", "location": "Vzvzz", "posted_at": "2026-02-28T20:39:01.694206", "service_type": "बढ़ईगीरी", "status": "open", "user_id": "uNNQciHVWgXOoGRjxTAEjb741DuL2" }, "job_details": "Va", "location": "Pune", "mr": { "budget_max": "5", "budget_min": "1", "description": "स्नब्बा", "duration": "5", "job_details": "वा", "location": "Vzvzz", "posted_at": "2026-02-28T20:39:01.694206", "service_type": "सुतारकाम", "status": "open", "user_id": "uNQciHVWgXOoGRjxTTAEjb741DuL2" }, "posted_at": "2026-02-28T20:38:59.476301", "service_type": "Carpentry", "status": "open", "type": "new_job", "user_id": "uNQciHVWgXOoGRjxTAEjb741DuL2", "user_name": "Varun" }
   ];
+  // 1. Log notifications when they change (Safe check included)
+  useEffect(() => {
+    if (contextObj.notifications?.length > 0) {
+      contextObj.notifications.forEach((item) => console.log(item));
+    }
+  }, [contextObj.notifications]);
+
+
+  const MessageBar = ({ item, index }) => (
+    <TouchableOpacity
+      key={index}
+      style={{
+        backgroundColor: item.unread ? "#F5F7FF" : "white",
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 21,
+        marginBottom: 14,
+        width: "92%",
+        alignSelf: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              color: "#6B7280",
+              marginBottom: 4,
+              fontWeight: "600",
+              textTransform: "uppercase",
+            }}
+          >
+            {item.type}
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            {item.message["from_name"]}: {item.message["msg"]}
+          </Text>
+
+
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const JobOuterCard = ({ item, index }) => (
+    <TouchableOpacity
+      key={index}
+      style={{
+        backgroundColor: item.unread ? "#F5F7FF" : "white",
+        borderRadius: 18,
+        paddingTop: 0,
+        paddingBottom: 22,
+        paddingHorizontal: 20,
+        marginBottom: 20,
+        minHeight: 96,
+        width: "92%",
+        alignSelf: "center",
+        borderWidth: 1,
+        borderColor: "#4560F4",
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+        >
+          <View style={{ flex: 1 }}>
+            <View
+              style={{
+                backgroundColor: "#4560F4",
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderTopLeftRadius: 18,
+                borderTopRightRadius: 18,
+                borderBottomLeftRadius: 8,
+                borderBottomRightRadius: 8,
+                alignSelf: "stretch",
+                marginHorizontal: -22,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: "white",
+                  fontWeight: "700",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.4,
+                }}
+              >
+                {item.type}
+              </Text>
+            </View>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                marginBottom: 6,
+              }}
+            >
+              {item.user_name} : {item.job_details}
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                color: "black",
+                fontWeight: "600",
+              }}
+            >
+              Job : {item.service_type}   Location : {item.location}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+
 
   return (
     <SafeAreaView
@@ -88,43 +205,11 @@ const Notifications = () => {
               marginLeft: 8,
               flex: 1,
               fontSize: 14,
-              color : 'black'
+              color: 'black'
             }}
           />
           <Ionicons name="options-outline" size={18} color="gray" />
         </View>
-        {/* <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {contextObj.notifications.map(
-            (item, index) => (
-              <View
-                key={index}
-                style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  backgroundColor:
-                    item.type === "new_message" ? "#EEF1FF" : "white",
-                  borderWidth: 1,
-                  borderColor: "#E2E6FF",
-                  marginRight: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "500",
-                    
-                  }}
-                >
-                  {item.type}
-                </Text>
-              </View>
-            )
-          )}
-        </ScrollView> */}
       </View>
       <View
         style={{
@@ -175,9 +260,20 @@ const Notifications = () => {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          {contextObj.notifications.map((item,index) => (
-            <Text key={index}>{item.type}</Text>
-            ))}
+          {/* {contextObj.notifications.map((item, index) => ( */}
+          {notifications.map((item, index) => (
+            console.log("Rendering notification:", item),
+            console.log("Notification datatype:", typeof item),
+            console.log("Notification content:", item["type"]),
+            item = JSON.parse(JSON.stringify(item)), // Deep copy to ensure reactivity
+            <View key={index}>
+              {
+                item.type === "new_message" ?
+                  <MessageBar item={item} index={index} /> : item.type === "new_job" ?
+                    <JobOuterCard item={item} index={index} /> : null
+              }
+            </View>
+          ))}
         </ScrollView>
       </View>
 

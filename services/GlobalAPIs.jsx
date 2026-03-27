@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const BASE_URL = "https://30vkdstn-5000.inc1.devtunnels.ms";
+export const BASE_URL = "https://sevavaani-backend.onrender.com";
 
 export const UpdateWorkerLoc = async (WORKER_ID, latitude, longitude) => {
   try {

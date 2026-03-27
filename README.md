@@ -28,14 +28,37 @@ Online / Offline mode with data synchronization
 
 ## Demo
 
-<video src="/assets/demo/online-offline_mode.mp4" controls width="600"></video>
+<table>
+  <tr>
+    <td>
+      <video src="https://github.com/user-attachments/assets/774ac8c5-c16f-4ba8-a87f-b0110e97f118" controls width="100%"></video>
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/89dfb4e3-798f-45fe-be04-e8fcce55ecf3" controls width="100%"></video>
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/4ce8dc24-f548-4b85-a75b-fd7c28772d83" controls width="100%"></video>
+    </td>
+  </tr>
 
-<video src="/assets/demo/short_navigation.mp4" controls width="600"></video>
-<video src="/assets/demo/worker-realtime-chat.mp4" controls width="600"></video>
-<video src="/assets/demo/worker_aadhar_verification.mp4" controls width="600"></video>
-<video src="/assets/demo/worker_proposal_activity.mp4" controls width="600"></video>
-<video src="/assets/demo/worker_qr_screen.mp4" controls width="600"></video>
-<video src="/assets/demo/worker_wallet.mp4" controls width="600"></video>
+  <tr>
+    <td>
+      <video src="https://github.com/user-attachments/assets/58f74415-63db-4a2a-810e-a09c2ef29a1f" controls width="100%"></video>
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/8731ff1b-23d9-45eb-8d41-72842ead30c8" controls width="100%"></video>
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/aaf5f596-4c01-46fb-9ac2-74579ab41175" controls width="100%"></video>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" align="center">
+      <video src="https://github.com/user-attachments/assets/f01f3dbe-2210-4fc7-bb0a-8f9cbc96cfb6" controls width="40%"></video>
+    </td>
+  </tr>
+</table>
 
 
 

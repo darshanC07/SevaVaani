@@ -19,6 +19,20 @@ export const UpdateWorkerLoc = async (WORKER_ID, latitude, longitude) => {
     console.error("Failed to send location:", err);
   }
 };
+export const uploadRecording = async (formData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/transcribe`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    console.log("Audio uploaded successfully:", response.data);
+    return response.data;
+  } catch (err) {
+    console.error("Failed to upload audio:", err);
+    throw err;
+  }
+};
 
 export const loginWorker = async (email, password, role) => {
   try {

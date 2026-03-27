@@ -143,7 +143,7 @@ export default function Index() {
       } else {
         router.replace("/worker");
         // router.push("/registration/ProfileSetup");
-        // router.push("/registration/WorkerProfile");
+        // router.push("/registration/OTPScreen");
       }
     }
     fetchUser();

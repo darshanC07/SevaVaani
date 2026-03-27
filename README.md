@@ -28,19 +28,14 @@ Online / Offline mode with data synchronization
 
 ## Demo
 
-![Online-Offline mode](/assets/demo/online-offline_mode.mp4)
+<video src="/assets/demo/online-offline_mode.mp4" controls width="600"></video>
 
-![Short navigation command](/assets/demo/short_navigation.mp4)
-
-![Realtime chatting](/assets/demo/worker-realtime-chat.mp4)
-
-![Aadhaar card verification](/assets/demo/worker_aadhar_verification.mp4)
-
-![Worker Sending quotation](/assets/demo/worker_proposal_activity.mp4)
-
-![Job QR in worker application](/assets/demo/worker_qr_screen.mp4)
-
-![Wallet](/assets/demo/worker_wallet.mp4)
+<video src="/assets/demo/short_navigation.mp4" controls width="600"></video>
+<video src="/assets/demo/worker-realtime-chat.mp4" controls width="600"></video>
+<video src="/assets/demo/worker_aadhar_verification.mp4" controls width="600"></video>
+<video src="/assets/demo/worker_proposal_activity.mp4" controls width="600"></video>
+<video src="/assets/demo/worker_qr_screen.mp4" controls width="600"></video>
+<video src="/assets/demo/worker_wallet.mp4" controls width="600"></video>
 
 
 

@@ -21,7 +21,7 @@ const PLANS = [
     tagline: 'Ideal for Beginners',
     price: '199',
     period: '/mo',
-    benefits: ['Demo', 'Demo', 'Demo', 'Demo'],
+    benefits: ['3 chat users allowed', 'Only 10 mins calling', 'Worker Recommendation : No', 'Voice Based command feature : Limited'],
     colors: ['#FFFFFF', '#F0F5FF'],
     itemColor: '#4560F4',
   },
@@ -31,7 +31,7 @@ const PLANS = [
     tagline: 'Our Best Seller',
     price: '499',
     period: '/mo',
-    benefits: ['Demo', 'Demo', 'Demo', 'Demo'],
+    benefits: ['7 chat users allowed', 'Allowed Call duration : 30+ min', 'Worker Recommendation : No', 'Voice Based command feature : Yes'],
     colors: ['#FFFFFF', '#E8F9FF'],
     itemColor: '#00C6FF',
   },
@@ -41,7 +41,7 @@ const PLANS = [
     tagline: 'Maximum Growth',
     price: '899',
     period: '/mo',
-    benefits: ['Demo', 'Demo', 'Demo', 'Demo'],
+    benefits: ['10+ chat users allowed', 'No restriction', 'Worker Recommendation : Yes', 'Voice Based command feature : Fully available'],
     colors: ['#FFFFFF', '#F6EFFF'],
     itemColor: '#7210EA',
   },
@@ -81,12 +81,12 @@ const PricingPlansScreen = () => {
     });
 
     const translateX = Animated.add(
-        scrollX.interpolate({
-            inputRange,
-            outputRange: [0, 0, cardWidth * 0.9],
-            extrapolate: 'clamp',
-        }),
-        stackShift
+      scrollX.interpolate({
+        inputRange,
+        outputRange: [0, 0, cardWidth * 0.9],
+        extrapolate: 'clamp',
+      }),
+      stackShift
     );
 
     const scale = scrollX.interpolate({
@@ -171,7 +171,7 @@ const PricingPlansScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={['#3B3299', '#2D2675', '#1E1B4B']} style={StyleSheet.absoluteFill} />
-      
+
       {/* Top Left Glow Orb */}
       <View style={styles.glowOrbContainer}>
         <LinearGradient
@@ -231,7 +231,7 @@ const PricingPlansScreen = () => {
       </View>
 
       <View style={styles.footerAction}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.primaryButton}
           activeOpacity={0.92}
           onPress={() => router.push('/worker/PlanSuccessScreen')}

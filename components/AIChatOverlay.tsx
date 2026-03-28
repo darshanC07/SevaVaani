@@ -160,7 +160,18 @@ const AIChatOverlay = ({ onClose }: { onClose: () => void }) => {
 
           router.push("/client/WorkerRankingScreen");
         }
-      } else if (intent === "other") { }
+      } else if (intent === "other") {
+        addMessage("I'm sorry, I can only help with viewing or navigating between screens.", "ai");
+        await TTS_module.getMsg(
+          "I'm sorry, I can only help with viewing or navigating between screens."
+        );
+      }
+      else {
+        addMessage("I'm sorry, I didn't understand that. Could you please rephrase?", "ai");
+        await TTS_module.getMsg(
+          "I'm sorry, I didn't understand that. Could you please rephrase?"
+        );
+      }
 
     } catch (error: any) {
       Alert.alert("Error", error?.message ?? String(error));

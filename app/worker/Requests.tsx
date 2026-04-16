@@ -27,6 +27,7 @@ const Requests = () => {
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language.toUpperCase();
 
+  const [originalRequests, setOriginalRequests] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -69,6 +70,7 @@ const Requests = () => {
             };
           },
         );
+        setOriginalRequests(formattedData);
         setRequests(formattedData);
       }
     } catch (error) {
@@ -104,6 +106,22 @@ const Requests = () => {
     );
   };
 
+  function searchRequest(query) {
+    if (!query.trim() || originalRequests.length === 0) {
+      setRequests(originalRequests);
+      return;
+    }
+
+    try{
+      console.log("Searching requests for query:", query);
+      const filteredRequests = originalRequests.filter(item => item.client_name.toLowerCase().includes(query.toLowerCase()) || item.job_details.toLowerCase().includes(query.toLowerCase()) || item.location.toLowerCase().includes(query.toLowerCase()) || item.status?.toLowerCase().includes(query.toLowerCase()));
+      setRequests(filteredRequests);
+      console.log("Filtered requests:", filteredRequests.length);
+    } catch(error) {
+      console.error("Error searching requests:", error);
+    }
+  }
+
   const handleOpen = (item: any) => {
     setSelectedRequest(item.full_data);
     setModalVisible(true);
@@ -134,6 +152,7 @@ const Requests = () => {
               placeholder="Search Requests"
               placeholderTextColor="#999"
               style={{ marginLeft: 10, flex: 1, color: "black", fontSize: 15 }}
+              onChangeText={(text)=>searchRequest(text)}
             />
           </View>
         </View>

@@ -30,33 +30,8 @@ const ChatList = () => {
   const currentLanguage = i18n.language.toLocaleLowerCase();
 
   const [search, setSearch] = useState("");
+  const [originalChatList, setOriginalChatList] = useState([]);
   const [chatList, setChatList] = useState([]);
-  const chatUsers = [
-    {
-      client_id: "U101",
-      client_name: "Rakesh Yadav",
-      time: "3:50 pm",
-      status: "Online",
-    },
-    {
-      client_id: "U102",
-      client_name: "Gopal Singh",
-      time: "3:50 pm",
-      status: "Offline",
-    },
-    {
-      client_id: "U103",
-      client_name: "Rohit Pawar",
-      time: "3:50 pm",
-      status: "Online",
-    },
-    {
-      client_id: "U104",
-      client_name: "Savitri Thakur",
-      time: "3:50 pm",
-      status: "Offline",
-    },
-  ];
 
   useEffect(() => {
     const fetchChatUsers = async () => {
@@ -74,6 +49,7 @@ const ChatList = () => {
             const filteredUsers = response.chats?.filter((item) =>
               item.client_name.toLowerCase().includes(search.toLowerCase())
             );
+            setOriginalChatList(filteredUsers);
             setChatList(filteredUsers);
           } else {
             setChatList([]);
@@ -102,6 +78,22 @@ const ChatList = () => {
     return `${hours}:${minutes} ${ampm}`;
   }
 
+  function searchJob(query) {
+    if (!query.trim() || originalChatList.length === 0) {
+      setChatList(originalChatList);
+      return;
+    }
+    try {
+      console.log("Searching chat user for query:", query);
+      const filteredChatList = originalChatList.filter(item => item.client_name.toLowerCase().includes(query.toLowerCase()));
+      setChatList(filteredChatList);
+      console.log("Filtered chat users:", filteredChatList.length);
+    }
+    catch (error) {
+      console.error("Error searching chat users:", error);
+    }
+  }
+
   return (
     <>
       <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F6FA" }}>
@@ -123,7 +115,10 @@ const ChatList = () => {
                   placeholderTextColor="#999"
                   style={styles.searchInput}
                   value={search}
-                  onChangeText={setSearch}
+                  onChangeText={(text) => {
+                    setSearch(text);
+                    searchJob(text);
+                  }}
                 />
               </View>
             </View>
@@ -141,53 +136,59 @@ const ChatList = () => {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {chatList.length > 0 && chatList.map((item) => {
-              return (
-                <TouchableOpacity key={item.client_id} style={styles.card} onPress={() => router.push({
-                  pathname: '/worker/ChatScreen',
-                  params: { clientId: item.client_id, clientName: item.client_name }
-                })}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {item.client_name.charAt(0)}
-                    </Text>
-                  </View>
+              {!loading && chatList.length === 0 ? (
+                <View style={{ width: '100%', height: 200, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: '#777', fontSize: 16 }}>No users found.</Text>
+                </View>
+              ) : (
+                chatList.length > 0 && chatList.map((item) => {
+                  return (
+                    <TouchableOpacity key={item.client_id} style={styles.card} onPress={() => router.push({
+                      pathname: '/worker/ChatScreen',
+                      params: { clientId: item.client_id, clientName: item.client_name }
+                    })}>
+                      <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>
+                          {item.client_name.charAt(0)}
+                        </Text>
+                      </View>
 
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.name}>{item.client_name}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.name}>{item.client_name}</Text>
 
-                    <View style={styles.statusRow}>
-                      <View
-                        style={[
-                          styles.statusDot,
-                          {
-                            backgroundColor:
-                              item.status === "Online"
-                                ? "#22C55E"
-                                : "#EF4444",
-                          },
-                        ]}
-                      />
-                      <Text
-                        style={[
-                          styles.statusText,
-                          {
-                            color:
-                              item.status === "Online"
-                                ? "#22C55E"
-                                : "#EF4444",
-                          },
-                        ]}
-                      >
-                        {item.status}
-                      </Text>
-                    </View>
-                  </View>
+                        <View style={styles.statusRow}>
+                          <View
+                            style={[
+                              styles.statusDot,
+                              {
+                                backgroundColor:
+                                  item.status === "Online"
+                                    ? "#22C55E"
+                                    : "#EF4444",
+                              },
+                            ]}
+                          />
+                          <Text
+                            style={[
+                              styles.statusText,
+                              {
+                                color:
+                                  item.status === "Online"
+                                    ? "#22C55E"
+                                    : "#EF4444",
+                              },
+                            ]}
+                          >
+                            {item.status}
+                          </Text>
+                        </View>
+                      </View>
 
-                  <Text style={styles.time}>{formatTime(item.last_seen)}</Text>
-                </TouchableOpacity>
-              )
-            })}
+                      <Text style={styles.time}>{formatTime(item.last_seen)}</Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
             </ScrollView>
           </View>
 

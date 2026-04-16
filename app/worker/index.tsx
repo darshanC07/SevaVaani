@@ -91,13 +91,14 @@ const index = () => {
         setIsJobDataLoading(false);
         return;
       }
-      
+
       const data = await fetchAllJobs(lang);
       console.log("Raw job data response:", data);
       if (data.code === 1) {
         let existingJobs = contextObj.jobs || {};
         existingJobs[lang] = data.jobs;
         contextObj.setJobs({ ...existingJobs });
+        setJobsData(data.jobs);
       } else {
         console.error("Failed to fetch job data - data.length:", data.jobs.length);
       }
@@ -244,7 +245,22 @@ const index = () => {
   }, [contextObj.isOnline])
 
   const lang = currentLanguage.toLocaleLowerCase();
-  const jobsForLang = contextObj.jobs?.[lang] ?? [];
+  const [jobsData,setJobsData] = useState(contextObj.jobs?.[lang] ?? []);
+
+  function searchJob(query) {
+    if (!query.trim() || contextObj.jobs?.[lang].length === 0) {
+      setJobsData(contextObj.jobs?.[lang] ?? []);
+      return;
+    }
+    try{
+      console.log("Searching jobs for query:", query);
+      const filteredJobs = contextObj.jobs?.[lang].filter(job => job?.job_details?.toLowerCase().includes(query.toLowerCase()));
+      setJobsData(filteredJobs);
+      console.log("Filtered jobs:", filteredJobs.length);
+    } catch(error) {
+      console.error("Error searching jobs:", error);
+    }
+  }
 
   return (
     <SafeAreaView
@@ -367,6 +383,7 @@ const index = () => {
               style={styles.searchBar}
               placeholder="Search Jobs..."
               placeholderTextColor={"grey"}
+              onChangeText={(text) => searchJob(text)}
             />
             <View style={styles.searchIconBox}>
               <Image
@@ -386,8 +403,8 @@ const index = () => {
               isJobDataLoading ? (
                 <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading jobs...</Text>
               ) : (
-                jobsForLang.length > 0 ? (
-                  jobsForLang.map((job) => (
+                jobsData.length > 0 ? (
+                  jobsData.map((job) => (
                     <WorkerJobCard key={job.job_id} jobData={job} />
                   ))
                 ) : (

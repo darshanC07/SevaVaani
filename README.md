@@ -4,6 +4,9 @@ In India, millions of blue-collar workers, such as carpenters, plumbers, electri
 
 # Solution
 
+https://github.com/user-attachments/assets/89202974-880a-44a3-b2e7-ef312d5ca588
+
+
 SevaVaani is a dual-role, voice-first, multilingual platform that enables clients to post jobs through simple voice interactions with an AI assistant, while allowing blue-collar workers (such as plumbers and electricians) to easily access and manage work opportunities.
 
 ## Voice-First, Multilingual, Always Accessible
@@ -60,7 +63,16 @@ Online / Offline mode with data synchronization
   </tr>
 </table>
 
-
+### Work in progress
+For clarity, the below features are not functional and currently working on it.
+1. Searchbars on all screens
+2. Notifications
+3. Your Ratings in Profile
+4. Saved Address in Profile
+5. Settings in Profile
+6. About us in Profile
+7. Refer and Earn in Profile
+8. Top setting's icon in Profile
 
 ## Feedback
 

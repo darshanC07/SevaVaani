@@ -1,12 +1,13 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity, Modal, Platform, NativeModules, Alert } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import AIChatOverlay from "./AIChatOverlay";
 import { GlobalStatesContext } from "@/contexts/GlobalContext";
 import LongPressMessageWindow from "./LongPressMessageWindow";
 
 const BottomNavBar = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [showOverlay, setShowOverlay] = useState(false);
 
   const contextObj = useContext(GlobalStatesContext);
@@ -22,9 +23,9 @@ const BottomNavBar = () => {
   }
 
   const handleIntent = async () => {
-   if (intent === "view_profile") {
+    if (intent === "view_profile") {
       router.push('/worker/Profile');
-    } 
+    }
   }
 
   useEffect(() => {
@@ -38,7 +39,8 @@ const BottomNavBar = () => {
   return (
     <View style={styles.bg}>
       <View>
-        <TouchableOpacity onPress={() => router.push('/worker')} style={{ alignItems: "center" }}>
+        <TouchableOpacity onPress={() => {if (pathname !== '/worker') router.push('/worker')}
+        } style={{ alignItems: "center" }}>
           <Image
             source={require("../assets/BottomNavBar/Home.png")}
             style={styles.icon}
@@ -46,7 +48,7 @@ const BottomNavBar = () => {
           <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Home</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={() => router.push('/worker/Requests')} style={{ alignItems: "center" }}>
+      <TouchableOpacity onPress={() =>{if (pathname !== '/worker/Requests') router.push('/worker/Requests')}} style={{ alignItems: "center" }}>
         <Image
           source={require("../assets/BottomNavBar/Business.png")}
           style={styles.icon}
@@ -99,14 +101,14 @@ const BottomNavBar = () => {
           <AIChatOverlay onClose={() => setShowOverlay(false)} />
         </View>
       </Modal>
-      <TouchableOpacity style={{ alignItems: "center" }} onPress={() => router.push('/worker/ChatList')}>
+      <TouchableOpacity style={{ alignItems: "center" }} onPress={() =>{if (pathname !== '/worker/ChatList') router.push('/worker/ChatList')}}>
         <Image
           source={require("../assets/BottomNavBar/chat.png")}
           style={styles.icon}
         />
         <Text style={{ color: "white", fontSize: 10, textAlign: "center" }}>Chat</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/worker/Profile')} style={{ alignItems: "center" }} >
+      <TouchableOpacity onPress={() =>{if (pathname !== '/worker/Profile') router.push('/worker/Profile')}} style={{ alignItems: "center" }} >
         <Image
           source={require("../assets/BottomNavBar/user.png")}
           style={styles.icon}

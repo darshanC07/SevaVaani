@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,7 +25,7 @@ const ChatList = () => {
   let { height } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
   const router = useRouter();
-
+  const [loading, setLoading] = useState(false);
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language.toLocaleLowerCase();
 
@@ -59,6 +60,7 @@ const ChatList = () => {
 
   useEffect(() => {
     const fetchChatUsers = async () => {
+      setLoading(true);
       const userId = await getUserId();
       console.log("Fetched User ID:", userId);
       if (!userId) {
@@ -66,7 +68,7 @@ const ChatList = () => {
         return;
       }
       try {
-        const response = await getChatList(userId,currentLanguage);
+        const response = await getChatList(userId, currentLanguage);
         if (response) {
           if (response.chats.length > 0) {
             const filteredUsers = response.chats?.filter((item) =>
@@ -82,114 +84,143 @@ const ChatList = () => {
       } catch (error) {
         console.error("Error fetching chat users:", error);
       }
+      setLoading(false);
     }
     fetchChatUsers();
 
   }, []);
 
   function formatTime(timestamp) {
-      const date = new Date(timestamp);
-  
-      let hours = date.getHours();
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-  
-      const ampm = hours >= 12 ? 'am' : 'pm';
-      hours = hours % 12 || 12; // Convert 24h → 12h format
-  
-      return `${hours}:${minutes} ${ampm}`;
-    }
+    const date = new Date(timestamp);
+
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    const ampm = hours >= 12 ? 'am' : 'pm';
+    hours = hours % 12 || 12; // Convert 24h → 12h format
+
+    return `${hours}:${minutes} ${ampm}`;
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F6FA" }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <NavBar />
+    <>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F6FA" }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <NavBar />
 
-        <View style={styles.header}>
-          <View style={styles.horizontalLine} />
-          <Text style={styles.title}>Chat</Text>
+          <View style={styles.header}>
+            <View style={styles.horizontalLine} />
+            <Text style={styles.title}>Chat</Text>
 
-          <View style={styles.searchRow}>
-            <View style={styles.searchBox}>
-              <Feather name="search" size={16} color="#999" />
-              <TextInput
-                placeholder="Search"
-                placeholderTextColor="#999"
-                style={styles.searchInput}
-                value={search}
-                onChangeText={setSearch}
-              />
+            <View style={styles.searchRow}>
+              <View style={styles.searchBox}>
+                <Feather name="search" size={16} color="#999" />
+                <TextInput
+                  placeholder="Search"
+                  placeholderTextColor="#999"
+                  style={styles.searchInput}
+                  value={search}
+                  onChangeText={setSearch}
+                />
+              </View>
             </View>
           </View>
-        </View>
 
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 110, paddingTop: 6 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {chatList.length > 0 && chatList.map((item) => {
-            return (
-              <TouchableOpacity key={item.client_id} style={styles.card} onPress={() => router.push({
-                pathname: '/worker/ChatScreen',
-                params: { clientId: item.client_id, clientName: item.client_name }
-              })}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {item.client_name.charAt(0)}
-                  </Text>
-                </View>
+          <View style={styles.contentContainer}>
+            {loading && (
+              <View style={styles.loaderOverlay}>
+                <ActivityIndicator size="large" color="#4560F4" />
+              </View>
+            )}
 
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.name}>{item.client_name}</Text>
-
-                  <View style={styles.statusRow}>
-                    <View
-                      style={[
-                        styles.statusDot,
-                        {
-                          backgroundColor:
-                            item.status === "Online"
-                              ? "#22C55E"
-                              : "#EF4444",
-                        },
-                      ]}
-                    />
-                    <Text
-                      style={[
-                        styles.statusText,
-                        {
-                          color:
-                            item.status === "Online"
-                              ? "#22C55E"
-                              : "#EF4444",
-                        },
-                      ]}
-                    >
-                      {item.status}
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 110, paddingTop: 6 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {chatList.length > 0 && chatList.map((item) => {
+              return (
+                <TouchableOpacity key={item.client_id} style={styles.card} onPress={() => router.push({
+                  pathname: '/worker/ChatScreen',
+                  params: { clientId: item.client_id, clientName: item.client_name }
+                })}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {item.client_name.charAt(0)}
                     </Text>
                   </View>
-                </View>
 
-                <Text style={styles.time}>{formatTime(item.last_seen)}</Text>
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.name}>{item.client_name}</Text>
 
-        <View style={{ position: "absolute", bottom: 20, width: "100%" }}>
-          <BottomNavBar />
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView >
+                    <View style={styles.statusRow}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          {
+                            backgroundColor:
+                              item.status === "Online"
+                                ? "#22C55E"
+                                : "#EF4444",
+                          },
+                        ]}
+                      />
+                      <Text
+                        style={[
+                          styles.statusText,
+                          {
+                            color:
+                              item.status === "Online"
+                                ? "#22C55E"
+                                : "#EF4444",
+                          },
+                        ]}
+                      >
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.time}>{formatTime(item.last_seen)}</Text>
+                </TouchableOpacity>
+              )
+            })}
+            </ScrollView>
+          </View>
+
+          <View
+            style={{
+              position: "absolute",
+              bottom: 20,
+              width: "100%",
+              zIndex: 20,
+              elevation: 20,
+            }}
+          >
+            <BottomNavBar />
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView ></>
   );
 };
 
 export default ChatList;
 
 const styles = StyleSheet.create({
+  loaderOverlay: {
+    position: "absolute",
+    zIndex: 10,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 100,
+    backgroundColor: "rgba(255,255,255,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   horizontalLine: {
     height: 1,
     width: "105%",
@@ -289,5 +320,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#777",
     fontWeight: "600",
+  },
+
+  contentContainer: {
+    flex: 1,
+    position: "relative",
   },
 });

@@ -86,10 +86,18 @@ const index = () => {
   async function getJobs(lang) {
     setIsJobDataLoading(true);
     try {
+      if(contextObj.jobs?.[lang]) {
+        console.log("Jobs already fetched for language:", lang);
+        setIsJobDataLoading(false);
+        return;
+      }
+      
       const data = await fetchAllJobs(lang);
       console.log("Raw job data response:", data);
       if (data.code === 1) {
-        contextObj.setJobs(data.jobs);
+        let existingJobs = contextObj.jobs || {};
+        existingJobs[lang] = data.jobs;
+        contextObj.setJobs({ ...existingJobs });
       } else {
         console.error("Failed to fetch job data - data.length:", data.jobs.length);
       }
@@ -126,11 +134,29 @@ const index = () => {
     fetchUserId();
   }, [])
 
+  // useEffect(() => {
+  //   console.log("fetching jobs ", performance.now());
+  //   const lang = currentLanguage.toLocaleLowerCase();
+  //   if (fetchedJobsLanguages.has(lang)) {
+  //     console.log("Skipping fetch — already fetched for:", lang);
+  //     return;
+  //   }
+  //   fetchedJobsLanguages.add(lang);
+  //   hasFetchedJobsRef.current = true;
+  //   lastJobsLangRef.current = lang;
+  //   getJobs(lang);
+  // }, [currentLanguage])
+
+  // useEffect(() => {
+  //   if(previousLanguage.current !== currentLanguage) {
+  //     getJobs(currentLanguage.toLocaleLowerCase());
+  //     previousLanguage.current = currentLanguage;
+  //   }
+  // },[currentLanguage])
+
   useEffect(() => {
     getJobs(currentLanguage.toLocaleLowerCase());
   }, [currentLanguage])
-
-
 
   useEffect(() => {
     if (!contextObj.isOnline) return;
@@ -216,6 +242,9 @@ const index = () => {
 
     prevOnlineStatus.current = contextObj.isOnline;
   }, [contextObj.isOnline])
+
+  const lang = currentLanguage.toLocaleLowerCase();
+  const jobsForLang = contextObj.jobs?.[lang] ?? [];
 
   return (
     <SafeAreaView
@@ -357,8 +386,8 @@ const index = () => {
               isJobDataLoading ? (
                 <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading jobs...</Text>
               ) : (
-                contextObj.jobs.length > 0 ? (
-                  contextObj.jobs.map((job) => (
+                jobsForLang.length > 0 ? (
+                  jobsForLang.map((job) => (
                     <WorkerJobCard key={job.job_id} jobData={job} />
                   ))
                 ) : (

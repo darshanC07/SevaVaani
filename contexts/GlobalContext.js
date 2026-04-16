@@ -3,8 +3,8 @@ import React, { createContext, useState } from "react";
 export const GlobalStatesContext = createContext({
   messages : [],
   setMessages : ([messages])=>{},
-  jobs : [],
-  setJobs : ()=>{},
+  jobs : {},
+  setJobs : ({})=>{},
   isOnline : true,
   setIsOnline : (status)=>{},
   isIemodelLoaded : false,
@@ -17,7 +17,7 @@ export const GlobalStatesContext = createContext({
 export const GlobalStatesProvider = ({ children }) => {
   const [messages,setMessages] = useState([])
   const [notifications,setNotifications] = useState([])
-  const [jobs,setJobs] = useState([])
+  const [jobs,setJobs] = useState({})
   const [isOnline, setIsOnline] = useState(true);
   const [isIemodelLoaded,setIeModel] = useState(false)
     return (

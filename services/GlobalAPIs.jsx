@@ -81,7 +81,10 @@ export const joinCall = async (user1, user1_name, user2, user2_name) => {
 
 export const fetchAllJobs = async (lang) => {
   try {
+    const start_time = performance.now();
     const response = await axios.get(`${BASE_URL}/${lang}/jobs`);
+    const end_time = performance.now();
+    console.log(`fetchAllJobs took ${(end_time - start_time).toFixed(2)} ms`);
     return response.data;
   } catch (err) {
     console.error("Failed to fetch jobs:", err);
@@ -273,9 +276,12 @@ export const fetchOngoingJobs = async (WORKER_ID, lang) => {
 
 export const getChatList = async (WORKER_ID, lang) => {
   try {
+    const start_time = performance.now();
     const response = await axios.get(
       `${BASE_URL}/${lang}/get_chat_list/worker/${WORKER_ID}`,
     );
+    const end_time = performance.now();
+    console.log(`getChatList took ${(end_time - start_time).toFixed(2)} ms`);
     return response.data;
   } catch (err) {
     console.error("Failed to fetch chat list:", err);

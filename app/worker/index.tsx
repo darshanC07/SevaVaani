@@ -254,7 +254,7 @@ const index = () => {
     }
     try{
       console.log("Searching jobs for query:", query);
-      const filteredJobs = contextObj.jobs?.[lang].filter(job => job?.job_details?.toLowerCase().includes(query.toLowerCase()));
+      const filteredJobs = contextObj.jobs?.[lang].filter(job => job?.job_details?.toLowerCase().includes(query.toLowerCase()) || job?.job_title?.toLowerCase().includes(query.toLowerCase()) || job?.location?.toLowerCase().includes(query.toLowerCase()));
       setJobsData(filteredJobs);
       console.log("Filtered jobs:", filteredJobs.length);
     } catch(error) {

@@ -1,6 +1,6 @@
 import { Stack, useRouter } from "expo-router";
 import * as Location from "expo-location";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 import '../i18n';
 import "../tasks/LocationTask";
 import { getUserId } from "../utils/AsyncStorageUtils";
@@ -8,15 +8,16 @@ import { GlobalStatesProvider } from "../contexts/GlobalContext";
 
 const LOCATION_TASK = "BACKGROUND_LOCATION_TASK";
 
-
-
-// this is for background location update in db
-export const startBackgroundLocation = async () => {
-
+export async function checkAndRequestLocationPermission() {
   console.log("Requesting location permissions...");
   const fg = await Location.requestForegroundPermissionsAsync();
   if (!fg.granted) {
     console.log("Foreground location permission denied");
+    Alert.alert(
+      "Location Permission Required",
+      "Please allow location access to use live tracking features.",
+      [{ text: "OK" }]
+    );
     return;
   }
 
@@ -25,9 +26,20 @@ export const startBackgroundLocation = async () => {
     console.log(
       "Please allow background location from Settings for live tracking."
     );
+    Alert.alert(
+      "Background Location Permission Required",
+      "Please allow background location access from Settings to use live tracking features.",
+      [{ text: "OK" }]
+    );
     return;
   }
+  console.log("Location permissions granted");
+}
 
+
+// this is for background location update in db
+export const startBackgroundLocation = async () => {
+  await checkAndRequestLocationPermission();
 
   const hasStarted = await Location.hasStartedLocationUpdatesAsync(
     LOCATION_TASK
@@ -71,29 +83,29 @@ const stopBackgroundLocation = async () => {
 export default function Layout() {
   return (
     <GlobalStatesProvider>
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="OnBoarding1" options={{ headerShown: false }} />
-      <Stack.Screen name="OnBoarding2" options={{ headerShown: false }} />
-      <Stack.Screen name="OnBoarding3" options={{ headerShown: false }} />
-      <Stack.Screen name="temp" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="registration"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="worker"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="call"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="login"
-        options={{ headerShown: false }}
-      />
-    </Stack>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="OnBoarding1" options={{ headerShown: false }} />
+        <Stack.Screen name="OnBoarding2" options={{ headerShown: false }} />
+        <Stack.Screen name="OnBoarding3" options={{ headerShown: false }} />
+        <Stack.Screen name="temp" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="registration"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="worker"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="call"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{ headerShown: false }}
+        />
+      </Stack>
     </GlobalStatesProvider>
   );
 }

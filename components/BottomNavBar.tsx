@@ -70,7 +70,8 @@ const BottomNavBar = () => {
         }}
         onPress={() => {
           if (!contextObj.isIemodelLoaded) {
-            Alert.alert("Processing", "The assistant is still loading. Please wait a moment and try again.");
+            // Alert.alert("Processing", "The assistant is still loading. Please wait a moment and try again.");
+            Alert.alert("Note", "This feature is under development. Please check back in next version!. Thank you");
             return;
           } else {
             setShowOverlay(true)

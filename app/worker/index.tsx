@@ -89,6 +89,7 @@ const index = () => {
       if(contextObj.jobs?.[lang]) {
         console.log("Jobs already fetched for language:", lang);
         setIsJobDataLoading(false);
+        setJobsData(contextObj.jobs[lang]);
         return;
       }
 
@@ -272,7 +273,8 @@ const index = () => {
     >
       <Modal
         transparent={true}
-        visible={showLoading}
+        // visible={showLoading}
+        visible={false}
         animationType="fade"
         onRequestClose={() => {
           // console.log("attempt to close modal") 

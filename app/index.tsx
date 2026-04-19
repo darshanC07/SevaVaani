@@ -1,6 +1,6 @@
 import { Redirect } from "expo-router";
 import { useContext, useEffect, useRef, useState } from "react";
-import { startBackgroundLocation } from "./_layout";
+import { startBackgroundLocation, checkAndRequestLocationPermission } from "./_layout";
 import EventSource from "react-native-sse";
 import { BASE_URL } from "../services/GlobalAPIs";
 import { getUserId } from "../utils/AsyncStorageUtils";
@@ -71,7 +71,7 @@ export default function Index() {
               CN: data.channelName,
               anotherUserId: data.user2,
               anotherUserName: data.user2_name,
-              channelToken : data.token
+              channelToken: data.token
             },
           });
         } else if (uid === data.user2) {
@@ -100,10 +100,11 @@ export default function Index() {
         const data = JSON.parse(event.data);
         console.log("Received new message event:", data.message);
         contextObj.setMessages((prevMessages) => [...prevMessages, data.message]);
-        if(data.message["to"]===uid){
-        data["type"] = "new_message";
-        contextObj.setNotifications((prevNotifications) => [...prevNotifications, data]);
-    }});
+        if (data.message["to"] === uid) {
+          data["type"] = "new_message";
+          contextObj.setNotifications((prevNotifications) => [...prevNotifications, data]);
+        }
+      });
 
       es.addEventListener("connected", (event: any) => {
         const data = JSON.parse(event.data);
@@ -118,14 +119,28 @@ export default function Index() {
         console.log("SSE connected");
       };
 
-      
-        
+
+
 
     };
 
-    startBackgroundLocation();
-    initSSE();
-    loadIEModel()
+    const fetchUser = async () => {
+      const uid = await getUserId();
+      setUser(uid);
+      if (uid === null) {
+        await checkAndRequestLocationPermission();
+        router.replace("/login");
+      } else {
+        startBackgroundLocation();
+        initSSE();
+        // loadIEModel();
+        router.replace("/worker");
+        // router.push("/registration/ProfileSetup");
+        // router.push("/registration/OTPScreen");
+      }
+    }
+    fetchUser();
+
     // return () => {
     //   isMounted = false;
     //   if (esRef.current) {
@@ -135,18 +150,7 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const uid = await getUserId();
-      setUser(uid);
-      if (uid === null) {
-        router.replace("/login");
-      } else {
-        router.replace("/worker");
-        // router.push("/registration/ProfileSetup");
-        // router.push("/registration/OTPScreen");
-      }
-    }
-    fetchUser();
+
   }, [user]);
 
   return (

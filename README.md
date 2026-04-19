@@ -99,7 +99,8 @@ A comprehensive optimization strategy was implemented across both frontend and b
   - Data is fetched once and reused efficiently.
   - Only required fields are processed and returned to the frontend.
   - **Result:**  
-    `getAllJobs` response time reduced from **~13s → ~0.43s**
+    Initial `getAllJobs` response time reduced from **~13s → ~1.43s**
+    Next fetching takes ~0.98 seconds
 
 - **Lazy Data Fetching (Selective Retrieval)**   
   - Eliminated full client data fetch for each record in loop when only client name was needed 
@@ -145,7 +146,7 @@ A comprehensive optimization strategy was implemented across both frontend and b
 
 | Feature / API        | Before        | After         |
 |---------------------|--------------|--------------|
-| getAllJobs          | ~12.97 sec    | ~0.43 sec     |
+| getAllJobs          | ~12.97 sec    | ~1.43 sec     |
 | get-chatlist        | ~9.56 sec     | ~1.9 sec      |
 | Job + Client Fetch  | ~6.24 sec     | ~1.15 sec     |
 | Worker Stability    | Frequent shutdown & restarts | Stable (1000+ connections) |

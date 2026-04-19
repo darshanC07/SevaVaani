@@ -63,16 +63,118 @@ Online / Offline mode with data synchronization
   </tr>
 </table>
 
+## Performance Optimization – Sevavaani Worker & Backend
+
+### Previous Approach & Issues
+
+The initial implementation of the Sevavaani Worker application and its backend followed a largely synchronous and unoptimized data-fetching pattern, which introduced multiple performance bottlenecks:
+
+- **Redundant Database Queries**  
+  Multiple endpoints (e.g., `getAllJobs`, `get-chatlist`) performed repeated database calls for the same data, increasing latency and server load.
+
+- **Over-fetching of Data**  
+  APIs frequently retrieved complete datasets even when only partial information (e.g., client name) was required, leading to unnecessary payload size and processing overhead.
+
+- **Synchronous Event Handling**  
+  Worker processes were blocked due to synchronous execution (e.g., `.get(25)`), causing delays and leading hosting platforms to misinterpret workers as unresponsive and restart them.
+
+- **Inefficient Initial Rendering**  
+  React components triggered duplicate API calls due to improper dependency handling in `useEffect`, resulting in redundant network traffic and slower UI load times.
+
+- **Repeated Navigation Stack Growth**  
+  Navigation logic allowed pushing the same screen multiple times, increasing memory usage and degrading user experience.
+
+- **High Latency Search Operations**  
+  Search functionality relied on backend calls, increasing response time and unnecessarily burdening the database.
+
+---
+
+### Optimized Approach & Improvements
+
+A comprehensive optimization strategy was implemented across both frontend and backend layers to improve performance, scalability, and responsiveness:
+
+#### Backend Optimizations
+
+- **Reduced Redundant Queries & Data Filtering**
+  - Data is fetched once and reused efficiently.
+  - Only required fields are processed and returned to the frontend.
+  - **Result:**  
+    `getAllJobs` response time reduced from **~13s → ~0.43s**
+
+- **Lazy Data Fetching (Selective Retrieval)**   
+  - Eliminated full client data fetch for each record in loop when only client name was needed 
+  - **Result:**  
+  - Optimized client data fetching in loop  
+    `getchatlist` improved from **~9.56s → ~1.9s**
+
+- **Asynchronous Data Fetching**
+  - Parallelized fetching of job details and client profiles.
+  - **Result:**  
+    Average response time reduced from **~6.24s → ~1.15s**
+
+- **Concurrent Worker Handling with Gevent**
+  - Enabled non-blocking I/O using `gevent` and `monkey.patch()`.
+  - Resolved worker blocking issues and improved concurrency.
+  - **Result:**  
+    Stable handling of **~1000 concurrent connections** without worker restarts.
+
+---
+
+####  Frontend Optimizations
+
+- **Controlled Data Fetching**
+  - Prevented duplicate API calls using `useRef` (`hasFetchedJobsRef`, `lastJobsLangRef`).
+  - Improved initial rendering efficiency.
+
+- **Application-Level Caching**
+  - Cached job data in global context.
+  - Subsequent accesses avoid redundant API calls, reducing latency.
+
+- **Optimized Navigation Handling**
+  - Prevented redundant navigation stack entries by checking current route before navigation.
+  - Improved memory usage and navigation performance.
+
+- **Client-Side Search Optimization**
+  - Implemented real-time search using `.filter()` on cached data.
+  - Eliminated per-keystroke backend calls.
+  - Reduced server load and improved responsiveness.
+
+---
+
+### Performance Gains Summary
+
+| Feature / API        | Before        | After         |
+|---------------------|--------------|--------------|
+| getAllJobs          | ~12.97 sec    | ~0.43 sec     |
+| get-chatlist        | ~9.56 sec     | ~1.9 sec      |
+| Job + Client Fetch  | ~6.24 sec     | ~1.15 sec     |
+| Worker Stability    | Frequent shutdown & restarts | Stable (1000+ connections) |
+
+---
+
+### Additional Enhancements
+
+- Implemented **search functionality** across:
+  - Jobs (title, location, description)
+  - Requests (title, location, client name, status)
+  - Chat list (client name)
+
+- Added **Help & Support Modal** with direct email integration.
+
+- Integrated **About Us linking** to project repository.
+
+---
+
+
+
 ### Work in progress
 For clarity, the below features are not functional and currently working on it.
-1. Searchbars on all screens
-2. Notifications
-3. Your Ratings in Profile
-4. Saved Address in Profile
-5. Settings in Profile
-6. About us in Profile
-7. Refer and Earn in Profile
-8. Top setting's icon in Profile
+1. Notifications
+2. Your Ratings in Profile
+3. Saved Address in Profile
+4. Settings in Profile
+5. Refer and Earn in Profile
+6. Top setting's icon in Profile
 
 ## Feedback
 

@@ -177,6 +177,11 @@ For clarity, the below features are not functional and currently working on it.
 5. Refer and Earn in Profile
 6. Top setting's icon in Profile
 
+
+> **Note**  
+> In the latest release of **Sevavaani Worker**, the voice assistant feature is temporarily unavailable as it is currently under development and improvement. It will be included in an upcoming version.
+
+
 ## Feedback
 
 If you have any feedback, please reach out to me at darshanchoudhary2007@gmail.com

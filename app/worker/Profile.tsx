@@ -9,6 +9,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
+  Modal,
+  Platform
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,11 +23,13 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTranslation } from 'react-i18next';
+import { op } from "@tensorflow/tfjs";
 const Profile = () => {
   const router = useRouter();
   const { t } = useTranslation();
   const [name, setName] = useState('User');
   const [email, setEmail] = useState('worker@gmail.com');
+  const [showHelpModal, setShowHelpModal] = useState(false);
   let { height, width } = useWindowDimensions();
   height = height - (StatusBar.currentHeight ? StatusBar.currentHeight : 24);
 
@@ -53,6 +58,32 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
+  const openUrl = async (url) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.warn('Failed to open URL', url, error);
+      if (typeof url === 'string' && url.startsWith('mailto:')) {
+        const email = url.replace(/^mailto:/, '').split('?')[0];
+        const webUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(email)}`;
+        Alert.alert(
+          "Can't open mail app",
+          `Couldn't open your mail app. Would you like to open Gmail web to send email to ${email}?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Gmail Web', onPress: () => Linking.openURL(webUrl).catch(() => Alert.alert('Failed', "Couldn't open Gmail web.")) },
+          ]
+        );
+      } else {
+        Alert.alert(`Don't know how to open this URL: ${url}`);
+      }
+    }
+  };
+
+  const handleHelpSupport = () => {
+    setShowHelpModal(true);
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -80,7 +111,7 @@ const Profile = () => {
           alignItems: "center",
         }}
       >
-        <View
+        <TouchableOpacity onPress={() => router.back()}
           style={{
             width: 40,
             height: 40,
@@ -92,7 +123,7 @@ const Profile = () => {
           }}
         >
           <Ionicons name="chevron-back" size={24} color="black" />
-        </View>
+        </TouchableOpacity>
         <View
           style={{
             width: 40,
@@ -212,20 +243,20 @@ const Profile = () => {
             />
             <Text style={styles.profileOptionText}>{t('profile.myBooking')}</Text>
           </TouchableOpacity>
-          <View style={styles.profileOption}>
+          <TouchableOpacity style={styles.profileOption} onPress={() => router.push("/worker/ChatList")}>
             <Image
               source={require("../../assets/Profile/Communication.png")}
               style={styles.profileOptionIcon}
             />
             <Text style={styles.profileOptionText}>{t('profile.chatHistory')}</Text>
-          </View>
-          <View style={styles.profileOption}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.profileOption} onPress={handleHelpSupport}>
             <Image
               source={require("../../assets/Profile/Headset.png")}
               style={styles.profileOptionIcon}
             />
             <Text style={styles.profileOptionText}>{t('profile.helpSupport')}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <View style={{
           borderWidth: 1, borderColor: 'black', marginTop: 20, borderRadius: 10, padding: 15,
@@ -248,12 +279,12 @@ const Profile = () => {
               <Ionicons name="settings-outline" size={24} color="black" />
               <Text style={styles.settingText}>{t('profile.settings')}</Text>
             </View>
-            <View style={styles.settingBar}>
+            <TouchableOpacity style={styles.settingBar} onPress={() => openUrl('https://github.com/darshanC07/SevaVaani')}>
               <View style={{ width: 24, height: 24, borderWidth: 1, borderColor: 'black', borderRadius: 5, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ fontSize: 14, fontWeight: '500' }}>SV</Text>
               </View>
               <Text style={styles.settingText}>{t('profile.about')}</Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.referAndEarnSection}>
               <View style={{ alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', width: '95%' }}>
                 <View style={{ width: '70%' }}>
@@ -273,6 +304,41 @@ const Profile = () => {
         </View>
       </View>
       <BottomNavBar />
+      <Modal
+        visible={showHelpModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowHelpModal(false)}
+      >
+        <View style={styles.helpModalContainer}>
+          <View style={styles.helpModalCard}>
+            <View style={styles.helpModalHeader}>
+              <Text style={styles.helpModalTitle}>Need Help?</Text>
+            </View>
+            <View style={styles.helpModalBody}>
+              <Text style={styles.helpModalMessage}>
+                Looks like you need help, No worries — we are here to help you.
+              </Text>
+              <Text style={[styles.helpModalMessage, { marginTop: 8, fontWeight: '600' }]}>Please email your issue to</Text>
+              <Text style={[styles.helpModalMessage, { color: '#4560F4', marginTop: 6 }]}>darshanchoudhary2007@gmail.com</Text>
+            </View>
+            <View style={styles.helpModalButtons}>
+              <TouchableOpacity style={styles.helpModalButton} onPress={() => setShowHelpModal(false)}>
+                <Text style={styles.helpModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.helpModalButton, styles.helpModalOpenButton]}
+                onPress={() => {
+                  setShowHelpModal(false);
+                  openUrl('mailto:darshanchoudhary2007@gmail.com?subject=SevaVaani-Worker%20|%20Support%20Request');
+                }}
+              >
+                <Text style={[styles.helpModalButtonText, { color: 'white' }]}>Open Mail</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -300,4 +366,33 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     width: '100%',
   }
+  ,
+  helpModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  helpModalCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  helpModalHeader: {
+    backgroundColor: '#4560F4',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  helpModalTitle: { color: 'white', fontSize: 18, fontWeight: '700' },
+  helpModalBody: { padding: 16 },
+  helpModalMessage: { fontSize: 16, color: '#333' },
+  helpModalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, padding: 12 },
+  helpModalButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: '#4560F4', backgroundColor: 'white' },
+  helpModalButtonText: { color: '#4560F4', fontWeight: '600' },
+  helpModalOpenButton: { backgroundColor: '#4560F4', borderColor: '#3450d0' },
 });
